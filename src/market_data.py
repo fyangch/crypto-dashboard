@@ -61,7 +61,7 @@ def get_klines(
 
 def get_gains(
     klines: pd.DataFrame, 
-    look_back: List[int] = [4, 16, 96],
+    look_back: List[int],
     current_price: Optional[float] = None,
     ) -> List[float]:
     """
@@ -84,7 +84,7 @@ def get_gains(
     if not current_price:
         current_price = klines['close'].iloc[-1]
 
-    return [(current_price / low) - 1. for low in lows]
+    return [((current_price / low) - 1.) * 100. for low in lows]
 
 
 def _get_binance_klines(symbol: str, interval: int, num_klines: int):
