@@ -97,7 +97,14 @@ def _get_binance_klines(symbol: str, interval: int, num_klines: int):
         "interval": INTERVALS[interval],
         "limit": str(num_klines),
     }
-    data = requests.get(BINANCE_ENDPOINT, params=params).json()
+    response = requests.get(BINANCE_ENDPOINT, params=params)
+
+    # wait for a few seconds in case of breaking the request rate limit
+    if response.status_code == 429:
+        print("Received a 429 status code for breaking the request rate limit!")
+        time.sleep(3)
+
+    data = response.json()
     n = len(data)
 
     return pd.DataFrame(data={
