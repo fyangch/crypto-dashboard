@@ -1,6 +1,30 @@
 import pandas as pd
 import json
+import sys
+import os
+import psutil
+import time
+from datetime import datetime
 
+
+def check_parent_process() -> None:        
+    """
+    Terminate the current process if the parent process is not running anymore. 
+    """
+    if not psutil.pid_exists(os.getppid()):
+        sys.exit()
+
+
+def clean_up_files() -> None:
+    """
+    Keep CSV files with market data from the previous two updates
+    and delete the remaining files.
+    """
+    # TODO
+    raise NotImplementedError("Clean up function not implemented yet.")
+
+
+# TODO: Use csv config file for coins/tokens and remove this function
 def get_info_df():
     with open("coins.json", "r") as f:
         coins = json.load(f)
