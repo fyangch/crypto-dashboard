@@ -10,7 +10,7 @@ app = Dash(external_stylesheets=[dbc.themes.DARKLY])
 app.layout = pump_screener_page.layout
 
 
-if __name__ == '__main__':
-    # start worker process
+if __name__ == "__main__":
+    # start background worker process
     Popen(["python", "background_task.py"], creationflags=CREATE_NEW_CONSOLE)
     app.run()
