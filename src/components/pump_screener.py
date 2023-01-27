@@ -1,15 +1,16 @@
 import pandas as pd
+import os
 from datetime import datetime
 
 from dash import html, callback, Output, Input
 import dash_bootstrap_components as dbc
 
-from src.pump_screener import scan_markets
 from src.utils import get_info_df
 
 
 layout = dbc.Container([            
     html.H1("Pump Screener"),
+    html.P("TODO!", id="last_update_text"),
 
     html.Div(dbc.Row([
         dbc.Col(html.H5("Priority 1 Coins")),
@@ -80,8 +81,8 @@ def get_table_body(df, info_df, gain):
             html.Td(coin), 
             html.Td("{:.2f}%".format(df.loc[coin, gain])),
             html.Td([
-                html.A("Exchange", href=info_df.loc[coin, "exchange_link"], target="_blank"), " ",
-                html.A("TradingView", href=info_df.loc[coin, "tradingview_link"], target="_blank"),
+                html.A("Exchange", href=df.loc[coin, "exchange_link"], target="_blank"), " ",
+                html.A("TradingView", href=df.loc[coin, "tradingview_link"], target="_blank"),
             ])
         ])
         for coin in coins
@@ -102,7 +103,7 @@ def update_tables(priority, num_results=5):
         for time_frame in ["1H", "4H", "1D"]
     ]
     
-    df = scan_markets(info_df)
+    df = pd.read_csv(os.path.join("data", "pump_1674815967.csv"), index_col="name")
     bodies = [
         get_table_body(df.sort_values(by=[gain], ascending=False).iloc[:num_results], info_df, gain)
         for gain in ["gain_1h", "gain_4h", "gain_1d"]

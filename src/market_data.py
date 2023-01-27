@@ -19,8 +19,8 @@ def update_market_data() -> None:
 
     # save data frames
     timestamp = int(time.time())
-    pump_df.to_csv(os.path.join("data", f"pump_{timestamp}.csv"))
-    trend_df.to_csv(os.path.join("data", f"trend_{timestamp}.csv"))
+    pump_df.to_csv(os.path.join("data", f"pump_{timestamp}.csv"), index_label="name")
+    trend_df.to_csv(os.path.join("data", f"trend_{timestamp}.csv"), index_label="name")
 
 
 def _update_pump_data(info_df: pd.DataFrame) -> pd.DataFrame:
@@ -37,7 +37,7 @@ def _update_pump_data(info_df: pd.DataFrame) -> pd.DataFrame:
     df = _add_gains(
         df=df, kline_dict=kline_dict, look_back=look_back,
         gain_col_names=["gain_1h", "gain_4h", "gain_1d"],
-        flag_col_names=["gains_1h_cons", "gain_4h_cons", "gain_1d_cons"],
+        flag_col_names=["gain_1h_cons", "gain_4h_cons", "gain_1d_cons"],
     )
 
     return df
@@ -85,7 +85,7 @@ def _add_gains(
             gains[i].append((current_price / lows[i] - 1.) * 100.)
             flags[i].append(current_price > highs[i])
 
-    for i in range(look_back):
+    for i in range(len(look_back)):
         df[gain_col_names[i]] = gains[i]
         df[flag_col_names[i]] = flags[i]
     
