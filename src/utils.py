@@ -4,7 +4,6 @@ import sys
 import os
 import psutil
 import time
-from datetime import datetime
 
 
 def check_parent_process() -> None:        
@@ -26,7 +25,7 @@ def clean_up_files() -> None:
 
 # TODO: Use csv config file for coins/tokens and remove this function
 def get_info_df():
-    with open("coins.json", "r") as f:
+    with open(os.path.join("data", "coins.json"), "r") as f:
         coins = json.load(f)
 
     names = coins.keys()

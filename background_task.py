@@ -9,6 +9,8 @@ from src.utils import check_parent_process, clean_up_files
 if __name__ == "__main__":
     # TODO: Set up logger with console and file handler. Print timestamps for each message.
 
+    update_market_data()
+    
     while True:
         check_parent_process()
         
