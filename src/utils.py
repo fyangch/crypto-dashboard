@@ -3,7 +3,7 @@ import json
 import sys
 import os
 import psutil
-import time
+from typing import Literal, Optional
 
 
 def check_parent_process() -> None:        
@@ -19,9 +19,35 @@ def clean_up_files() -> None:
     Keep CSV files with market data from the previous two updates
     and delete the remaining files.
     """
-    # TODO
-    raise NotImplementedError("Clean up function not implemented yet.")
+    for type in ["pump", "trend"]:
+        files = sorted([file for file in os.listdir("data") if type in file])
+        if len(files) > 2:
+            for file in files[:-2]:
+                os.remove(os.path.join("data", file))
 
+
+def new_market_data_available(timestamp: int) -> bool:
+    """
+    Return True if there are market data files that have been created after the given timestamp.
+    """
+    files = [file for file in os.listdir("data") if "pump" in file]
+    timestamps = [int(file.replace(".csv", "").replace("pump_", "")) for file in files]
+
+    return max(timestamps) > timestamp
+
+
+def get_market_data(type: Literal["pump", "trend"]) -> Optional[pd.DataFrame]:
+    """
+    Return data frame with the most recent market data.
+    Return None if there are no files available.
+    """
+
+    files = sorted([file for file in os.listdir("data") if type in file])
+    if len(files) == 0:
+        return None
+
+    return pd.read_csv(os.path.join("data", files[-1]), index_col="name")
+    
 
 # TODO: Use csv config file for coins/tokens and remove this function
 def get_info_df():
