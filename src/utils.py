@@ -3,7 +3,7 @@ import json
 import sys
 import os
 import psutil
-from typing import Literal, Optional
+from typing import Literal, Optional, Tuple
 
 
 def check_parent_process() -> None:        
@@ -36,17 +36,19 @@ def new_market_data_available(timestamp: int) -> bool:
     return max(timestamps) > timestamp
 
 
-def get_market_data(type: Literal["pump", "trend"]) -> Optional[pd.DataFrame]:
+def get_market_data(type: Literal["pump", "trend"]) -> Tuple[Optional[pd.DataFrame], int]:
     """
-    Return data frame with the most recent market data.
+    Return data frame with the most recent market data and its timestamp.
     Return None if there are no files available.
     """
-
     files = sorted([file for file in os.listdir("data") if type in file])
     if len(files) == 0:
-        return None
+        return None, -1
 
-    return pd.read_csv(os.path.join("data", files[-1]), index_col="name")
+    df = pd.read_csv(os.path.join("data", files[-1]), index_col="name")
+    timestamp = int(files[-1].replace(".csv", "").replace(f"{type}_", ""))
+    
+    return df, timestamp
     
 
 # TODO: Use csv config file for coins/tokens and remove this function

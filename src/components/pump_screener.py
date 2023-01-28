@@ -1,119 +1,101 @@
 import pandas as pd
-import os
 from datetime import datetime
+from typing import List, Tuple
 
-from dash import html, callback, Output, Input
+from dash import html, dcc, no_update, callback, Output, Input
 import dash_bootstrap_components as dbc
 
-from src.utils import get_info_df
+from src.utils import get_market_data
 
 
-layout = dbc.Container([            
+layout = dbc.Container([
+    # to save data in the browser session of the user
+    dcc.Store(id="state"),
+
     html.H1("Pump Screener"),
-    html.P("TODO!", id="last_update_text"),
-
-    html.Div(dbc.Row([
-        dbc.Col(html.H5("Priority 1 Coins")),
-        dbc.Col(html.Div(id="last_update_1", style={"text-align": "center"})),
-        dbc.Col(html.Div(dbc.Button("Update", id="update_1", size="sm"), style={"text-align": "right"})),
-    ])),
-    html.Div(id="gains_1"),
-
-    html.Div(dbc.Row([
-        dbc.Col(html.H5("Priority 2 Coins")), 
-        dbc.Col(html.Div(id="last_update_2", style={"text-align": "center"})),
-        dbc.Col(html.Div(dbc.Button("Update", id="update_2", size="sm"), style={"text-align": "right"})),
-    ])),
-    html.Div(id="gains_2"),
-
-    html.Div(dbc.Row([
-        dbc.Col(html.H5("Priority 3 Coins")),
-        dbc.Col(html.Div(id="last_update_3", style={"text-align": "center"})),
-        dbc.Col(html.Div(dbc.Button("Update", id="update_3", size="sm"), style={"text-align": "right"})),
-    ])),
-    html.Div(id="gains_3"),
-
-    html.Div(dbc.Row([
-        dbc.Col(html.H5("Priority 4 Coins")), 
-        dbc.Col(html.Div(id="last_update_4", style={"text-align": "center"})),
-        dbc.Col(html.Div(dbc.Button("Update", id="update_4", size="sm"), style={"text-align": "right"})),
-    ])),
-    html.Div(id="gains_4"),
+    html.P("Last update:", id="last_update_text"),
+    
+    # tables for each tier
+    dbc.Row([
+        dbc.Col([
+            html.H5("Best Tier 1 Coins"), 
+            html.Div(id="gains_1"),
+            html.H5("Best Tier 2 Coins"), 
+            html.Div(id="gains_2"),
+        ]),
+        dbc.Col([
+            html.H5("Best Tier 3 Coins"), 
+            html.Div(id="gains_3"),
+            html.H5("Best Tier 4 Coins"), 
+            html.Div(id="gains_4"),
+        ])
+    ]),
 ])
 
+header = html.Thead(html.Tr([
+    html.Th("Coin"), 
+    html.Th("1H Gain"),
+    html.Th("4H Gain"),
+    html.Th("1D Gain"),
+    html.Th("Links"),
+]))
 
-@callback(Output("gains_1", "children"), Output("last_update_1", "children"), Input("update_1", "n_clicks"))
-def update_gains_1(n_clicks):
-    return update_tables(1)
-
-@callback(Output("gains_2", "children"), Output("last_update_2", "children"), Input("update_2", "n_clicks"))
-def update_gains_2(n_clicks):
-    tables = update_tables(2)
-    return tables
-
-@callback(Output("gains_3", "children"), Output("last_update_3", "children"), Input("update_3", "n_clicks"))
-def update_gains_3(n_clicks):
-    return update_tables(3)
-
-@callback(Output("gains_4", "children"), Output("last_update_4", "children"), Input("update_4", "n_clicks"))
-def update_gains_4(n_clicks):
-    return update_tables(4)
+table_options = {
+    "bordered": True, 
+    "dark": True, 
+    "hover": True, 
+    "responsive": True, 
+    "striped": True,
+}
 
 
-def get_empty_tables():
-    headers = [
-        [html.Thead(html.Tr([html.Th("Coin"), html.Th(f"{time_frame} Gain"), html.Th("Links")]))]
-        for time_frame in ["1H", "4H", "1D"]
-    ]
+@callback(
+    Output("last_update_text", "children"),
+    Output("gains_1", "children"),
+    Output("gains_2", "children"),
+    Output("gains_3", "children"),
+    Output("gains_4", "children"),
+    Input("state", "data"),
+)
+def update_tables(n_clicks) -> Tuple[str, dbc.Table, dbc.Table, dbc.Table, dbc.Table]:
+    # TODO: Add other stuff: interval update, sorting, "conservative" checkbox, etc.
+    return get_tables(num_results=[5, 5, 5, 10])
 
-    return dbc.Row([
-        dbc.Col(
-            dbc.Table(headers[i], bordered=True, dark=True, hover=True, responsive=True, striped=True)
-        )
-        for i in range(3)
-    ])
+
+def get_empty_table() -> dbc.Table:
+    return dbc.Table(header, **table_options)
 
 
-def get_table_body(df, info_df, gain):
+def get_table_body(df: pd.DataFrame) -> html.Tbody:
     coins = df.index.values
     rows = [
         html.Tr([
             html.Td(coin), 
-            html.Td("{:.2f}%".format(df.loc[coin, gain])),
+            html.Td("{:.2f}%".format(df.loc[coin, "gain_1h"])),
+            html.Td("{:.2f}%".format(df.loc[coin, "gain_4h"])),
+            html.Td("{:.2f}%".format(df.loc[coin, "gain_1d"])),
             html.Td([
                 html.A("Exchange", href=df.loc[coin, "exchange_link"], target="_blank"), " ",
                 html.A("TradingView", href=df.loc[coin, "tradingview_link"], target="_blank"),
-            ])
+            ]),
         ])
         for coin in coins
     ]
 
-    return [html.Tbody(rows)]
+    return html.Tbody(rows)
 
 
-def update_tables(priority, num_results=5):
-    info_df = get_info_df()
-    info_df = info_df[info_df["priority"] == priority]
+def get_tables(num_results: List[int]) -> Tuple[str, dbc.Table, dbc.Table, dbc.Table, dbc.Table]:
+    df, timestamp = get_market_data(type="pump")
+    if df is None:
+        return no_update, *[get_empty_table() for _ in range(4)]
 
-    if len(info_df.index) == 0:
-        return get_empty_tables(), ""
+    last_update_text = f"(Last update: {datetime.utcfromtimestamp(timestamp).strftime('%d/%m/%Y, %H:%M')} UTC)"
 
-    headers = [
-        [html.Thead(html.Tr([html.Th("Coin"), html.Th(f"{time_frame} Gain"), html.Th("Links")]))]
-        for time_frame in ["1H", "4H", "1D"]
-    ]
-    
-    df = pd.read_csv(os.path.join("data", "pump_1674815967.csv"), index_col="name")
-    bodies = [
-        get_table_body(df.sort_values(by=[gain], ascending=False).iloc[:num_results], info_df, gain)
-        for gain in ["gain_1h", "gain_4h", "gain_1d"]
-    ]
+    tables = []
+    for i in range(1, 5):
+        curr_df = df[df["priority"] == i]
+        body = get_table_body(curr_df.sort_values(by=["gain_1h"], ascending=False).iloc[:num_results[i-1]])
+        tables.append(dbc.Table([header] + [body], **table_options))
 
-    tables = dbc.Row([
-        dbc.Col(
-            dbc.Table(headers[i] + bodies[i], bordered=True, dark=True, hover=True, responsive=True, striped=True)
-        )
-        for i in range(3)
-    ])
-
-    return tables, f"(Last update: {datetime.now().strftime('%H:%M:%S')})"
+    return last_update_text, *tables
