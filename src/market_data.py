@@ -26,6 +26,9 @@ def update_market_data() -> None:
         col_names=["gain_1d", "gain_3d", "gain_1w"],
     )
 
+    # compute strengths of current pumps
+    df = _add_pump_strengths(df, kline_dict)
+
     # save updated data
     timestamp = int(time.time())
     df.to_csv(os.path.join("data", f"market_data_{timestamp}.csv"), index_label="name")
@@ -59,4 +62,24 @@ def _add_gains(
     for i in range(len(look_back)):
         df[col_names[i]] = gains[i]
     
+    return df
+
+
+def _add_pump_strengths(
+    df: pd.DataFrame,
+    kline_dict: Dict[str, pd.DataFrame],
+    look_back: int = 43,
+    ) -> pd.DataFrame:
+    """
+    Compute the strength of the current pumps. For that, the current kline ranges
+    are compared with the medians of the absolute kline ranges within the last week.
+    """
+    strengths = []
+    for name in df.index:
+        klines = kline_dict[name].iloc[-look_back:]
+        ranges = (klines["high"] - klines["low"])
+        median = ranges.iloc[:-1].abs().median()
+        strengths.append((ranges.iloc[-1] / median - 1.) * 100.)
+
+    df["pump_strength"] = strengths
     return df

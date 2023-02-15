@@ -37,6 +37,7 @@ header = html.Thead(html.Tr([
     html.Th("1D Gain"),
     html.Th("3D Gain"),
     html.Th("1W Gain"),
+    html.Th("Pump Strength"),
     html.Th("Links"),
 ]))
 
@@ -74,6 +75,7 @@ def get_table_body(df: pd.DataFrame) -> html.Tbody:
             html.Td("{:.2f}%".format(df.loc[coin, "gain_1d"])),
             html.Td("{:.2f}%".format(df.loc[coin, "gain_3d"])),
             html.Td("{:.2f}%".format(df.loc[coin, "gain_1w"])),
+            html.Td("{:.2f}%".format(df.loc[coin, "pump_strength"])),
             html.Td([
                 html.A("Exchange", href=df.loc[coin, "exchange_link"], target="_blank"), " ",
                 html.A("TradingView", href=df.loc[coin, "tradingview_link"], target="_blank"),
