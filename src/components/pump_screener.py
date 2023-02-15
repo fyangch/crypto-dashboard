@@ -30,13 +30,13 @@ layout = dbc.Container([
             html.Div(id="gains_4"),
         ])
     ]),
-])
+], fluid="sm")
 
 header = html.Thead(html.Tr([
     html.Th("Coin"), 
-    html.Th("1H Gain"),
-    html.Th("4H Gain"),
     html.Th("1D Gain"),
+    html.Th("3D Gain"),
+    html.Th("1W Gain"),
     html.Th("Links"),
 ]))
 
@@ -71,9 +71,9 @@ def get_table_body(df: pd.DataFrame) -> html.Tbody:
     rows = [
         html.Tr([
             html.Td(coin), 
-            html.Td("{:.2f}%".format(df.loc[coin, "gain_1h"])),
-            html.Td("{:.2f}%".format(df.loc[coin, "gain_4h"])),
             html.Td("{:.2f}%".format(df.loc[coin, "gain_1d"])),
+            html.Td("{:.2f}%".format(df.loc[coin, "gain_3d"])),
+            html.Td("{:.2f}%".format(df.loc[coin, "gain_1w"])),
             html.Td([
                 html.A("Exchange", href=df.loc[coin, "exchange_link"], target="_blank"), " ",
                 html.A("TradingView", href=df.loc[coin, "tradingview_link"], target="_blank"),
@@ -86,7 +86,7 @@ def get_table_body(df: pd.DataFrame) -> html.Tbody:
 
 
 def get_tables(num_results: List[int]) -> Tuple[str, dbc.Table, dbc.Table, dbc.Table, dbc.Table]:
-    df, timestamp = get_market_data(type="pump")
+    df, timestamp = get_market_data()
     if df is None:
         return no_update, *[get_empty_table() for _ in range(4)]
 
@@ -95,7 +95,7 @@ def get_tables(num_results: List[int]) -> Tuple[str, dbc.Table, dbc.Table, dbc.T
     tables = []
     for i in range(1, 5):
         curr_df = df[df["priority"] == i]
-        body = get_table_body(curr_df.sort_values(by=["gain_1h"], ascending=False).iloc[:num_results[i-1]])
+        body = get_table_body(curr_df.sort_values(by=["gain_1d"], ascending=False).iloc[:num_results[i-1]])
         tables.append(dbc.Table([header] + [body], **table_options))
 
     return last_update_text, *tables
