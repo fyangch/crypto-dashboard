@@ -1,13 +1,8 @@
-import pandas as pd
-from datetime import datetime
-from typing import List, Tuple
-
-from dash import html, dcc, no_update, callback, Output, Input
+from dash import html, dcc
 import dash_bootstrap_components as dbc
 
-from src.utils import get_market_data
-
 from src.components.info_card import info_card
+from src.components.pump_card import pump_card
 
 
 test_card = dbc.Card(
@@ -26,18 +21,18 @@ test_card = dbc.Card(
 
 layout = html.Div(
     [
-    # to save data in the browser session of the user
-    dcc.Store(id="state"),
-    dbc.Container(
-        [
-            dbc.Row(dbc.Col(info_card, width=12)),
-            html.Br(),
-            dbc.Row([
-                dbc.Col(test_card, width=6),
-                dbc.Col(test_card, width=3),
-                dbc.Col(test_card, width=3),
-            ]),
-        ], fluid=True),
+        dcc.Store(id="timestamp", data=0),        
+        dbc.Container(
+            [
+                dbc.Row(dbc.Col(info_card, width=12)),
+                html.Br(),
+                dbc.Row([
+                    dbc.Col(test_card, width=5),
+                    dbc.Col(test_card, width=4),
+                    dbc.Col(pump_card, width=3),
+                ]),
+            ], fluid=True
+        ),
     ], 
-    style={"margin": "2em 1em 0em 1em"} # top right bottom left
+    style={"margin": "2em 1em 0em 1em"}, # top right bottom left
 )
