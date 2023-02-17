@@ -3,7 +3,7 @@ import dash_bootstrap_components as dbc
 from dash.dash_table import DataTable, FormatTemplate
 
 
-percentage = FormatTemplate.percentage(2)
+percentage = FormatTemplate.percentage(1)
 
 table_style_args = {
     "page_size": 30,
@@ -33,7 +33,7 @@ pump_card = dbc.Card(
                 id="pump_table",
                 data=list(), 
                 columns=[
-                    dict(id="name", name="Name"),
+                    dict(id="id", name="Name"),
                     dict(id="pump_strength", name="Pump Strength", type="numeric", format=percentage),
                     dict(id="gain_1d", name="Gain 1D", type="numeric", format=percentage),
                     dict(id="gain_3d", name="Gain 3D", type="numeric", format=percentage),
@@ -47,4 +47,24 @@ pump_card = dbc.Card(
     body=True,
 )
 
-trend_card = dbc.Card() # TODO
+trend_card = dbc.Card(
+    html.Div(
+        [
+            html.H4("Uptrend Screener"),
+            DataTable(
+                id="trend_table",
+                data=list(), 
+                columns=[
+                    dict(id="id", name="Name"),
+                    dict(id="trend_strength", name="Trend Strength", type="numeric", format=percentage),
+                    dict(id="gain_1d", name="Gain 1D", type="numeric", format=percentage),
+                    dict(id="gain_3d", name="Gain 3D", type="numeric", format=percentage),
+                    dict(id="gain_1w", name="Gain 1W", type="numeric", format=percentage),
+                ],
+                **table_style_args,
+            )
+        ], 
+        className="dbc dbc-row-selectable",
+    ),
+    body=True,
+)
