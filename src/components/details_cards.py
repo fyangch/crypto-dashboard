@@ -21,7 +21,7 @@ bitcoin_card = dbc.Card(
 altcoin_card = dbc.Card(
     [
         html.H4("Altcoin Details", className="card-title"),
-        html.H6("Click on any table entry to see more details of the corresponding altcoin.", className="card-subtitle"),
+        html.H6("Click on any table row to see more details of the corresponding altcoin.", className="card-subtitle"),
 
         html.P("test bro", id="test"),
         dbc.CardLink("Card link", href="#"),

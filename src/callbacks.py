@@ -9,6 +9,7 @@ import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
 
 from src.market_data import update_market_data
+from src.components.table_cards import get_row_highlight_condition
 
 
 def register_callbacks(app: Dash):
@@ -75,23 +76,34 @@ def register_callbacks(app: Dash):
 
     @app.callback(
         Output("altcoin", "data"),
-        Output("trend_table", "active_cell"),
-        Output("trend_table", "selected_cells"),
-        Output("pump_table", "active_cell"),
-        Output("pump_table", "selected_cells"),
-        Input("trend_table", "active_cell"), 
-        Input("pump_table", "active_cell"),
+        Output("trend_table", "active_cell"), Output("trend_table", "selected_cells"), Output("trend_table", "style_data_conditional"),
+        Output("pump_table", "active_cell"), Output("pump_table", "selected_cells"), Output("pump_table", "style_data_conditional"),
+        Input("trend_table", "active_cell"),  Input("pump_table", "active_cell"),
+        State("trend_table", "style_data_conditional"), State("pump_table", "style_data_conditional"),
         prevent_initial_call=True,
     )
-    def select_altcoin(active_cell_trend, active_cell_pump):
+    def select_altcoin(active_cell_trend, active_cell_pump, style_trend, style_pump):
+        altcoin = no_update
         if ctx.triggered_id == "trend_table":
-            if not active_cell_trend: # happens when you change the current page
-                raise PreventUpdate
-            return active_cell_trend["row_id"], no_update, no_update, None, []
+            if active_cell_trend:
+                condition = get_row_highlight_condition(active_cell_trend["row"])
+                style_trend[1] = condition
+                style_pump[1] = {}
+                altcoin = active_cell_trend["row_id"]
+            else:
+                style_trend[1] = {}
+                style_pump = no_update
         else:
-            if not active_cell_pump: # happens when you change the current page
-                raise PreventUpdate
-            return active_cell_pump["row_id"], None, [], no_update, no_update
+            if active_cell_pump:
+                condition = get_row_highlight_condition(active_cell_pump["row"])
+                style_pump[1] = condition
+                style_trend[1] = {}
+                altcoin = active_cell_pump["row_id"]
+            else:
+                style_pump[1] = {}
+                style_trend = no_update
+                
+        return altcoin, None, [], style_trend, None, [], style_pump
 
 
     @app.callback(
@@ -102,5 +114,4 @@ def register_callbacks(app: Dash):
     def update_altcoin_details(altcoin):
         if altcoin in [None, ""]:
             raise PreventUpdate
-        
         return altcoin
