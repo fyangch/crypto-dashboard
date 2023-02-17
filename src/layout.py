@@ -2,7 +2,7 @@ from dash import html, dcc
 import dash_bootstrap_components as dbc
 
 from src.components.info_card import info_card
-from src.components.pump_card import pump_card
+from src.components.table_cards import trend_card, pump_card
 
 
 test_card = dbc.Card(

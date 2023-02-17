@@ -1,8 +1,10 @@
+import os
+import time
 import pandas as pd
 from datetime import datetime
-import time
 
-from dash import Dash, html, dcc, no_update, ctx, callback, Output, Input, State
+
+from dash import Dash, html, dcc, no_update, ctx, callback, dash_table, Output, Input, State
 import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
 
@@ -21,7 +23,7 @@ def register_callbacks(app: Dash):
     def update_data(n_clicks):
         # update market data on startup or when button clicked
         timestamp = int(time.time())
-        update_market_data()
+        #update_market_data() # TODO: UNCOMMENT!
         return timestamp
 
 
@@ -33,15 +35,25 @@ def register_callbacks(app: Dash):
     def set_last_update_text(timestamp):
         return f"Last update: {datetime.fromtimestamp(timestamp).strftime('%d.%m.%Y, %H:%M')}"
 
-    
+
     @callback(
-        # TODO: dashtable as outputs
+        Output("pump_table", "data"),
         Input("timestamp", "data"),
         # TODO: All filters etc as inputs
         prevent_initial_call=True,
     )
-    def update_pump_table():
-        id = ctx.triggered_id
-        # TODO: distinguish between data update and filter etc.
+    def update_pump_table(timestamp):
+        df = pd.read_csv(os.path.join("data", "market_data.csv"))
+        df = df.loc[df["pump_strength"] > -1.] # TODO: Set final threshold
+        df = df[["name", "pump_strength", "gain_1d", "gain_3d", "gain_1w"]]
+        df = df.sort_values(by=["pump_strength"], ascending=False)
+
+        if ctx.triggered_id == "timestamp":
+            return df.to_dict("records")
+        else:
+            # TODO
+            # use dcc.Store to store current filter settings?
+            raise PreventUpdate
+        
     
     # TODO: Repeat for all other tables
