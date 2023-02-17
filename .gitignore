@@ -130,3 +130,10 @@ dmypy.json
 
 # PyCharm
 .idea/
+
+# diskcache
+cache/
+
+# market data
+data/market_data.csv
+data/klines/

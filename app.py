@@ -1,15 +1,21 @@
-from subprocess import Popen, CREATE_NEW_CONSOLE
+import diskcache
 from dash import Dash
 import dash_bootstrap_components as dbc
+from dash.long_callback import DiskcacheLongCallbackManager
 
-from src.components import pump_screener
+from src.layout import layout
+from src.callbacks import register_callbacks
 
 
-app = Dash(external_stylesheets=[dbc.themes.DARKLY])
-app.layout = pump_screener.layout
+cache = diskcache.Cache("./cache")
+long_callback_manager = DiskcacheLongCallbackManager(cache)
+
+dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
+app = Dash(external_stylesheets=[dbc.themes.DARKLY, dbc_css], long_callback_manager=long_callback_manager)
+
+app.layout = layout
+register_callbacks(app)
 
 
 if __name__ == "__main__":
-    # start background worker process
-    Popen(["python", "background_task.py"], creationflags=CREATE_NEW_CONSOLE)
-    app.run()
+    app.run(debug=True)
