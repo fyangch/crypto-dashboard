@@ -2,14 +2,15 @@ import os
 import time
 import pandas as pd
 from datetime import datetime
+import plotly.graph_objects as go
 
-
-from dash import Dash, html, dcc, no_update, ctx, dash_table, Output, Input, State
+from dash import Dash, html, dcc, no_update, ctx, Output, Input, State
 import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
 
 from src.market_data import update_market_data
 from src.components.table_cards import get_row_highlight_condition
+from src.components.figures import get_candlestick_figure
 
 
 def register_callbacks(app: Dash):
@@ -46,7 +47,7 @@ def register_callbacks(app: Dash):
     def update_pump_table(timestamp):
         df = pd.read_csv(os.path.join("data", "market_data.csv"))
         df = df.rename(columns={"name": "id"})
-        df = df.loc[df["pump_strength"] > 2]
+        df = df.loc[df["pump_strength"] > 1]
         df = df[["id", "pump_strength", "gain_1d", "gain_3d", "gain_1w"]]
         df = df.sort_values(by=["pump_strength"], ascending=False)
 
@@ -107,11 +108,34 @@ def register_callbacks(app: Dash):
 
 
     @app.callback(
-        Output("test", "children"), 
+        Output("altcoin_usd_chart", "children"), 
+        Output("altcoin_btc_chart", "children"), 
         Input("altcoin", "data"),
         prevent_initial_call=True,
     )
     def update_altcoin_details(altcoin):
         if altcoin in [None, ""]:
             raise PreventUpdate
-        return altcoin
+        
+        altcoin_df = pd.read_csv(os.path.join("data", "klines", f"{altcoin}.csv"))
+        btc_df = pd.read_csv(os.path.join("data", "klines", "BTC.csv"))
+
+        usd_chart = get_candlestick_figure(
+            title=f"{altcoin} / USD",
+            timestamp=altcoin_df["timestamp"],
+            open=altcoin_df["open"], 
+            high=altcoin_df["high"],
+            low=altcoin_df["low"], 
+            close=altcoin_df["close"],
+        )
+
+        btc_chart = get_candlestick_figure(
+            title=f"{altcoin} / BTC",
+            timestamp=altcoin_df["timestamp"],
+            open=altcoin_df["open"] / btc_df["close"], 
+            high=altcoin_df["high"] / btc_df["close"],
+            low=altcoin_df["low"] / btc_df["close"], 
+            close=altcoin_df["close"] / btc_df["close"],
+        )
+
+        return usd_chart, btc_chart

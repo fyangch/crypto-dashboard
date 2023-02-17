@@ -1,4 +1,4 @@
-from dash import html
+from dash import html, dcc
 import dash_bootstrap_components as dbc
 
 
@@ -17,13 +17,18 @@ bitcoin_card = dbc.Card(
     ], body=True
 )
 
-# TODO: replace dummy card
 altcoin_card = dbc.Card(
     [
         html.H4("Altcoin Details", className="card-title"),
         html.H6("Click on any table row to see more details of the corresponding altcoin.", className="card-subtitle"),
 
-        html.P("test bro", id="test"),
+        html.Br(),
+        dbc.Row([
+            dbc.Col([dbc.Row(dbc.Col(id="altcoin_usd_chart", width=12))], width=6),
+            dbc.Col([dbc.Row(dbc.Col(id="altcoin_btc_chart", width=12))], width=6),
+        ]),
+        
+        html.Br(),
         dbc.CardLink("Card link", href="#"),
         dbc.CardLink("External link", href="https://google.com"),
     ], body=True

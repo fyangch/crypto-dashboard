@@ -7,20 +7,6 @@ from src.components.details_cards import bitcoin_card, altcoin_card
 from src.components.table_cards import trend_card, pump_card
 
 
-test_card = dbc.Card(
-    [
-        html.H4("Title", className="card-title"),
-        html.H6("Card subtitle", className="card-subtitle"),
-        html.P(
-            "Some quick example text to build on the card title and make "
-            "up the bulk of the card's content.",
-            className="card-text",
-        ),
-        dbc.CardLink("Card link", href="#"),
-        dbc.CardLink("External link", href="https://google.com"),
-    ], body=True
-)
-
 layout = html.Div(
     [
         dcc.Store(id="timestamp", data=0), # timestamp of latest update
@@ -31,9 +17,10 @@ layout = html.Div(
                 html.Br(),
                 dbc.Row([
                     dbc.Col([
-                        dbc.Row(dbc.Col(overview_card, width=12)),
-                        html.Br(),
-                        dbc.Row(dbc.Col(bitcoin_card, width=12)),
+                        dbc.Row([
+                            dbc.Col(overview_card, width=6),
+                            dbc.Col(bitcoin_card, width=6),
+                        ]),
                         html.Br(),
                         dbc.Row(dbc.Col(altcoin_card, width=12)),
                     ], width=6),

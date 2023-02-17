@@ -71,18 +71,19 @@ def _add_gains(
 def _add_pump_strengths(
     df: pd.DataFrame,
     kline_dict: Dict[str, pd.DataFrame],
-    look_back: int = 43,
+    look_back: int = 45,
     ) -> pd.DataFrame:
     """
-    Compute the strength of the current pumps. For that, the current kline ranges
-    are compared with the medians of the absolute kline ranges within the last week.
+    Compute the strength of the current pumps. For that, the largest kline range (without wicks) of the 
+    last 3 klines is compared with the mean of the absolute kline ranges within the last week.
     """
     strengths = []
     for name in df.index:
         klines = kline_dict[name].iloc[-look_back:]
-        ranges = (klines["high"] - klines["low"])
-        median = ranges.iloc[:-1].abs().median()
-        strengths.append(ranges.iloc[-1] / median - 1.)
+        ranges = (klines["close"] - klines["open"])
+        max_range = ranges.iloc[-3:].max()
+        mean = ranges.iloc[:-3].abs().mean()
+        strengths.append(max_range / mean - 1.)
 
     df["pump_strength"] = strengths
     return df
