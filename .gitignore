@@ -133,3 +133,7 @@ dmypy.json
 
 # diskcache
 cache/
+
+# market data
+data/market_data.csv
+data/klines/

@@ -10,7 +10,6 @@ from src.utils import get_info_df
 def update_market_data() -> None:
     """
     Update all data frame values using the latest exchange data.
-    Save the updated data frames as "pump_{timestamp}.csv" and "trend_{timestamp}.csv"
     """
     # TODO: Convert json config to csv file and read df directly here
     # fetch latest kline data
@@ -30,8 +29,12 @@ def update_market_data() -> None:
     df = _add_pump_strengths(df, kline_dict)
 
     # save updated data
-    timestamp = int(time.time())
-    df.to_csv(os.path.join("data", f"market_data_{timestamp}.csv"), index_label="name")
+    if not os.path.exists(os.path.join("data", "klines")):
+        os.makedirs(os.path.join("data", "klines"))
+
+    df.to_csv(os.path.join("data", "market_data.csv"), index_label="name")
+    for name in kline_dict:
+        kline_dict[name].to_csv(os.path.join("data", "klines", f"{name}.csv"))
 
 
 def _get_kline_age(klines: pd.DataFrame) -> int:
@@ -57,7 +60,7 @@ def _add_gains(
         lows = [kline_dict[name]["low"].iloc[-offset:].min() for offset in look_back]
         current_price = kline_dict[name]["close"].iloc[-1]
         for i in range(len(look_back)):
-            gains[i].append((current_price / lows[i] - 1.) * 100.)
+            gains[i].append(current_price / lows[i] - 1.)
 
     for i in range(len(look_back)):
         df[col_names[i]] = gains[i]
@@ -79,7 +82,7 @@ def _add_pump_strengths(
         klines = kline_dict[name].iloc[-look_back:]
         ranges = (klines["high"] - klines["low"])
         median = ranges.iloc[:-1].abs().median()
-        strengths.append((ranges.iloc[-1] / median - 1.) * 100.)
+        strengths.append(ranges.iloc[-1] / median - 1.)
 
     df["pump_strength"] = strengths
     return df
