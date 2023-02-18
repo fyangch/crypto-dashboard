@@ -31,7 +31,7 @@ table_style_args = {
 def get_row_highlight_condition(row_index: int) -> dict:
     return  {
         "if": {"row_index": row_index},
-        "backgroundColor": "rgba(0, 188, 140, 0.8)",
+        "backgroundColor": "rgb(0, 188, 140)",
         "border": "0px",
     }
 

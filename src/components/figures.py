@@ -15,6 +15,38 @@ figure_args = {
     "height": 300,
 }
 
+h_line_args = {
+    "line_width": 1.5, 
+    "line_dash": "dot", 
+    "line_color": "rgb(55, 90, 127)",
+}
+
+arrow_args = {
+    "xref": "x",
+    "yref": "y",
+    "axref": "x",
+    "ayref": "y",
+    "text": "",
+    "arrowhead": 2,
+    "arrowwidth": 1,
+    "arrowside": "end+start",
+    "arrowcolor": "white",
+    "standoff": 5,
+    "startstandoff": 5,
+}
+
+box_args = {
+    "xref": "x",
+    "yref": "y",
+    "font": {"color": "white", "size": 12},
+    "showarrow": False,
+    "bordercolor": "white",
+    "borderwidth": 1,
+    "borderpad": 2,
+    "bgcolor": "rgb(55, 90, 127)",
+}
+
+
 def get_bar_figure(names: pd.Series, gains: pd.Series):
     figure = go.Figure(data=go.Bar(
         x=names,
@@ -42,9 +74,11 @@ def get_candlestick_figure(
     low: pd.Series,
     close: pd.Series,
     ) -> dcc.Graph:
+
+    datetime = pd.to_datetime(timestamp, unit="s")
     
     figure = go.Figure(data=go.Candlestick(
-        x=pd.to_datetime(timestamp, unit="s"),
+        x=datetime,
         open=open, high=high, low=low, close=close,
     ))
     figure.update_layout(
@@ -52,6 +86,30 @@ def get_candlestick_figure(
         xaxis_rangeslider_visible=False,
         hovermode=False,
         **figure_args,
+    )
+
+    # add annotations to chart
+    lowest_low = low.min()
+    current_close = close.iloc[-1]
+    index = low[low == lowest_low].index[0]
+    gain = (current_close / lowest_low - 1.) * 100.
+
+    figure.add_hline(y=lowest_low, **h_line_args)
+    figure.add_hline(y=current_close, **h_line_args)
+
+    figure.add_annotation(
+        x=datetime[index],
+        y=current_close,
+        ax=datetime[index],
+        ay=lowest_low,
+        **arrow_args,
+    )
+
+    figure.add_annotation(
+        x=datetime[index],
+        y=0.5 * (current_close + lowest_low),
+        text="{:.1f}".format(gain) + "%",
+        **box_args,
     )
 
     return dcc.Graph(figure=figure, config={"displayModeBar": False})

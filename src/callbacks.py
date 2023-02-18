@@ -47,7 +47,7 @@ def register_callbacks(app: Dash):
     def update_pump_table(timestamp):
         df = pd.read_csv(os.path.join("data", "market_data.csv"))
         df = df.rename(columns={"name": "id"})
-        df = df.loc[df["pump_strength"] > 1]
+        df = df.loc[df["pump_strength"] > 1.5]
         df = df[["id", "pump_strength", "gain_1d", "gain_3d", "gain_1w"]]
         df = df.sort_values(by=["pump_strength"], ascending=False)
 
@@ -126,7 +126,7 @@ def register_callbacks(app: Dash):
         prevent_initial_call=True,
     )
     def update_bitcoin_card(timestamp):
-        df = pd.read_csv(os.path.join("data", "klines", "BTC.csv"))
+        df = pd.read_csv(os.path.join("data", "klines", "BTC.csv")).iloc[-42:]
         # TODO: Update chart and exchange links
         return get_candlestick_figure(
             title="BTC / USD",
@@ -148,8 +148,8 @@ def register_callbacks(app: Dash):
         if altcoin in [None, ""]:
             raise PreventUpdate
         
-        altcoin_df = pd.read_csv(os.path.join("data", "klines", f"{altcoin}.csv"))
-        btc_df = pd.read_csv(os.path.join("data", "klines", "BTC.csv"))
+        altcoin_df = pd.read_csv(os.path.join("data", "klines", f"{altcoin}.csv")).iloc[-42:]
+        btc_df = pd.read_csv(os.path.join("data", "klines", "BTC.csv")).iloc[-42:]
 
         # TODO: Update chart and exchange links
 
