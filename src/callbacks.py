@@ -10,7 +10,7 @@ from dash.exceptions import PreventUpdate
 
 from src.market_data import update_market_data
 from src.components.table_cards import get_row_highlight_condition
-from src.components.figures import get_candlestick_figure
+from src.components.figures import get_candlestick_figure, get_bar_figure
 
 
 def register_callbacks(app: Dash):
@@ -38,7 +38,7 @@ def register_callbacks(app: Dash):
     def set_last_update_text(timestamp):
         return f"Last update: {datetime.fromtimestamp(timestamp).strftime('%d.%m.%Y, %H:%M')}"
 
-
+    
     @app.callback(
         Output("pump_table", "data"),
         Input("timestamp", "data"),
@@ -106,6 +106,37 @@ def register_callbacks(app: Dash):
                 
         return altcoin, None, [], style_trend, None, [], style_pump
 
+    
+    @app.callback(
+        Output("bar_chart", "children"),
+        Input("timestamp", "data"),
+        prevent_initial_call=True,
+    )
+    def update_overview_card(timestamp):
+        df = pd.read_csv(os.path.join("data", "market_data.csv"))
+        df = df.rename(columns={"name": "id"})
+        df = df.sort_values(by=["gain_1d"], ascending=False).iloc[:30]
+
+        return get_bar_figure(names=df["id"], gains=df["gain_1d"])
+
+
+    @app.callback(
+        Output("bitcoin_chart", "children"),
+        Input("timestamp", "data"),
+        prevent_initial_call=True,
+    )
+    def update_bitcoin_card(timestamp):
+        df = pd.read_csv(os.path.join("data", "klines", "BTC.csv"))
+        # TODO: Update chart and exchange links
+        return get_candlestick_figure(
+            title="BTC / USD",
+            timestamp=df["timestamp"],
+            open=df["open"], 
+            high=df["high"],
+            low=df["low"], 
+            close=df["close"],
+        )
+
 
     @app.callback(
         Output("altcoin_usd_chart", "children"), 
@@ -113,12 +144,14 @@ def register_callbacks(app: Dash):
         Input("altcoin", "data"),
         prevent_initial_call=True,
     )
-    def update_altcoin_details(altcoin):
+    def update_altcoin_card(altcoin):
         if altcoin in [None, ""]:
             raise PreventUpdate
         
         altcoin_df = pd.read_csv(os.path.join("data", "klines", f"{altcoin}.csv"))
         btc_df = pd.read_csv(os.path.join("data", "klines", "BTC.csv"))
+
+        # TODO: Update chart and exchange links
 
         usd_chart = get_candlestick_figure(
             title=f"{altcoin} / USD",
