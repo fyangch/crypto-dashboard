@@ -56,6 +56,7 @@ def get_bar_figure(names: pd.Series, gains: pd.Series):
 
     args = copy.deepcopy(figure_args)
     args["xaxis"]["tickmode"] = "linear"
+    args["height"] = 320
 
     figure.update_layout(
         title_text="Top Gainers (1D)",

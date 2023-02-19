@@ -2,6 +2,8 @@ from dash import html
 import dash_bootstrap_components as dbc
 from dash.dash_table import DataTable, FormatTemplate
 
+from src.components.radio_items import get_radio_items
+
 
 percentage = FormatTemplate.percentage(1)
 
@@ -39,6 +41,7 @@ trend_card = dbc.Card(
     html.Div(
         [
             html.H4("Uptrend Screener"),
+            get_radio_items(id="radio_trend", options=["All", "Watchlist", "Tier 1", "Tier 2", "Tier 3", "Tier 4"]),
             DataTable(
                 id="trend_table",
                 data=list(), 
@@ -59,8 +62,9 @@ trend_card = dbc.Card(
 
 pump_card = dbc.Card(
     html.Div(
-        [
+        [   
             html.H4("Pump Screener"),
+            get_radio_items(id="radio_pump", options=["All", "Watchlist", "Tier 1", "Tier 2", "Tier 3", "Tier 4"]),
             DataTable(
                 id="pump_table",
                 data=list(), 
