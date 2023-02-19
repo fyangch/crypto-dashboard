@@ -10,9 +10,8 @@ def update_market_data() -> None:
     """
     Update all data frame values using the latest exchange data.
     """
-    # TODO: Convert json config to csv file and read df directly here
     # fetch latest kline data
-    df = get_info_df()
+    df = pd.read_csv(os.path.join("data", "config.csv"), index_col="name")
     kline_dict = get_klines(df, interval=240, num_klines=186)
 
     # compute gains from lowest lows within last 1D, 1W and 1M
