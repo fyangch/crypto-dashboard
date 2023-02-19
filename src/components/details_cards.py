@@ -12,9 +12,9 @@ bitcoin_card = dbc.Card(
         ]),
         html.Div(id="bitcoin_chart"),
         html.Br(),
-        html.Div([
-            dbc.CardLink("Card link", href="#"),
-            dbc.CardLink("External link", target="_blank", href="https://google.com"),
+        dbc.Row([
+            dbc.Col(id="bitcoin_tradingview"),
+            dbc.Col(id="bitcoin_exchanges"),
         ]),
     ], body=True
 )
@@ -32,9 +32,9 @@ altcoin_card = dbc.Card(
             dbc.Col([dbc.Row(dbc.Col(id="altcoin_btc_chart", width=12))], width=6),
         ]),
         html.Br(),
-        html.Div([
-            dbc.CardLink("Card link", href="#"),
-            dbc.CardLink("External link", target="_blank", href="https://google.com"),
+        dbc.Row([
+            dbc.Col(id="altcoin_tradingview"),
+            dbc.Col(id="altcoin_exchanges"),
         ]),
     ], body=True
 )

@@ -1,5 +1,6 @@
 import os
 import time
+import numpy as np
 import pandas as pd
 from datetime import datetime
 import plotly.graph_objects as go
@@ -137,14 +138,12 @@ def register_callbacks(app: Dash):
         Input("radio_btc_chart", "value"),
         prevent_initial_call=True,
     )
-    def update_bitcoin_card(timestamp, timeframe):
+    def update_bitcoin_chart(timestamp, timeframe):
         df = pd.read_csv(os.path.join("data", "klines", "BTC.csv"))
         if timeframe == "1W":
             df = df.iloc[-42:]
         else:
             df = df.iloc[-186:]
-
-        # TODO: Update chart and exchange links
 
         return get_candlestick_figure(
             title="BTC / USD",
@@ -154,6 +153,19 @@ def register_callbacks(app: Dash):
             low=df["low"], 
             close=df["close"],
         )
+    
+    @app.callback(
+        Output("bitcoin_tradingview", "children"),
+        Output("bitcoin_exchanges", "children"),
+        Input("timestamp", "data"),
+        prevent_initial_call=True,
+    )
+    def update_bitcoin_links(timestamp):
+        df = pd.read_csv(os.path.join("data", "config.csv"), index_col="name")
+        tradingview_link = dbc.CardLink("TradingView", target="_blank", href=df.loc["BTC", "tradingview_usd"])
+        exchange_links = "" # TODO
+
+        return tradingview_link, exchange_links
 
 
     @app.callback(
@@ -164,7 +176,7 @@ def register_callbacks(app: Dash):
         Input("radio_altcoin_chart", "value"), 
         prevent_initial_call=True,
     )
-    def update_altcoin_card(timestamp, altcoin, timeframe):
+    def update_altcoin_charts(timestamp, altcoin, timeframe):
         if altcoin in [None, ""]:
             raise PreventUpdate
         
@@ -177,8 +189,6 @@ def register_callbacks(app: Dash):
         else:
             altcoin_df = altcoin_df.iloc[-186:]
             btc_df = btc_df.iloc[-186:]
-
-        # TODO: Update chart and exchange links
 
         usd_chart = get_candlestick_figure(
             title=f"{altcoin} / USD",
@@ -199,3 +209,23 @@ def register_callbacks(app: Dash):
         )
 
         return usd_chart, btc_chart
+
+
+    @app.callback(
+        Output("altcoin_tradingview", "children"),
+        Output("altcoin_exchanges", "children"),
+        Input("altcoin", "data"),
+        prevent_initial_call=True,
+    )
+    def update_altcoin_links(altcoin):
+        df = pd.read_csv(os.path.join("data", "config.csv"), index_col="name")
+
+        tradingview_links = []
+        if type(df.loc[altcoin, "tradingview_usd"]) == str:
+            tradingview_links.append(dbc.CardLink("TradingView (USD)", target="_blank", href=df.loc[altcoin, "tradingview_usd"]))
+        if type(df.loc[altcoin, "tradingview_btc"]) == str:
+            tradingview_links.append(dbc.CardLink("TradingView (BTC)", target="_blank", href=df.loc[altcoin, "tradingview_btc"]))
+
+        exchange_links = "" # TODO
+
+        return tradingview_links, exchange_links
