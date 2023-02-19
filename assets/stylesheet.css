@@ -1,0 +1,5 @@
+/* disable hover effect of sorting buttons */
+span.column-header--sort {
+  background-color: unset !important;
+  color: unset !important;
+}

@@ -40,6 +40,20 @@ def register_callbacks(app: Dash):
 
     
     @app.callback(
+        Output("trend_table", "data"),
+        Input("timestamp", "data"),
+        prevent_initial_call=True,
+    )
+    def update_trend_table(timestamp):
+        df = pd.read_csv(os.path.join("data", "market_data.csv"))
+        df = df.rename(columns={"name": "id"})
+        #df = df.loc[df["trend_strength"] > -1.] # TODO: Set final threshold
+        df = df[["id", "gain_1d", "gain_1w", "gain_1m"]]
+
+        return df.to_dict("records")
+
+
+    @app.callback(
         Output("pump_table", "data"),
         Input("timestamp", "data"),
         prevent_initial_call=True,
@@ -47,43 +61,39 @@ def register_callbacks(app: Dash):
     def update_pump_table(timestamp):
         df = pd.read_csv(os.path.join("data", "market_data.csv"))
         df = df.rename(columns={"name": "id"})
-        df = df.loc[df["pump_strength"] > 1.5]
-        df = df[["id", "pump_strength", "gain_1d", "gain_3d", "gain_1w"]]
-        df = df.sort_values(by=["pump_strength"], ascending=False)
+        df = df.loc[df["pump_strength"] > 2]
+        df = df[["id", "pump_strength", "gain_1d", "gain_1w", "gain_1m"]]
 
         return df.to_dict("records")
-        
-    
-    @app.callback(
-        Output("trend_table", "data"),
-        Input("timestamp", "data"),
-        # TODO: All filters etc as inputs
-        prevent_initial_call=True,
-    )
-    def update_trend_table(timestamp):
-        df = pd.read_csv(os.path.join("data", "market_data.csv"))
-        df = df.rename(columns={"name": "id"})
-        #df = df.loc[df["trend_strength"] > -1.] # TODO: Set final threshold
-        df = df[["id", "gain_1d", "gain_3d", "gain_1w"]]
-        df = df.sort_values(by=["gain_1d"], ascending=False)
 
+
+    @app.callback(
+        Output("trend_table", "page_current"),
+        Output("pump_table", "page_current"),
+        Input("timestamp", "data"),
+        Input("trend_table", "sort_by"),
+    )
+    def reset_to_first_page(timestamp, sort_by):
         if ctx.triggered_id == "timestamp":
-            return df.to_dict("records")
-        else:
-            # TODO
-            # use dcc.Store to store current filter settings?
-            raise PreventUpdate
+            return 0, 0
+        return 0, no_update
 
 
     @app.callback(
         Output("altcoin", "data"),
         Output("trend_table", "active_cell"), Output("trend_table", "selected_cells"), Output("trend_table", "style_data_conditional"),
         Output("pump_table", "active_cell"), Output("pump_table", "selected_cells"), Output("pump_table", "style_data_conditional"),
-        Input("trend_table", "active_cell"),  Input("pump_table", "active_cell"),
+        Input("trend_table", "active_cell"),  Input("pump_table", "active_cell"), Input("timestamp", "data"),
         State("trend_table", "style_data_conditional"), State("pump_table", "style_data_conditional"),
         prevent_initial_call=True,
     )
-    def select_altcoin(active_cell_trend, active_cell_pump, style_trend, style_pump):
+    def select_altcoin(active_cell_trend, active_cell_pump, timestamp, style_trend, style_pump):
+        # remove row highlighting on reloads
+        if ctx.triggered_id == "timestamp":
+            style_trend[1] = {}
+            style_pump[1] = {}
+            return no_update, None, [], style_trend, None, [], style_pump
+
         altcoin = no_update
         if ctx.triggered_id == "trend_table":
             if active_cell_trend:
@@ -123,11 +133,18 @@ def register_callbacks(app: Dash):
     @app.callback(
         Output("bitcoin_chart", "children"),
         Input("timestamp", "data"),
+        Input("radio_btc_chart", "value"),
         prevent_initial_call=True,
     )
-    def update_bitcoin_card(timestamp):
-        df = pd.read_csv(os.path.join("data", "klines", "BTC.csv")).iloc[-42:]
+    def update_bitcoin_card(timestamp, timeframe):
+        df = pd.read_csv(os.path.join("data", "klines", "BTC.csv"))
+        if timeframe == "1W":
+            df = df.iloc[-42:]
+        else:
+            df = df.iloc[-186:]
+
         # TODO: Update chart and exchange links
+
         return get_candlestick_figure(
             title="BTC / USD",
             timestamp=df["timestamp"],
@@ -140,16 +157,25 @@ def register_callbacks(app: Dash):
 
     @app.callback(
         Output("altcoin_usd_chart", "children"), 
-        Output("altcoin_btc_chart", "children"), 
+        Output("altcoin_btc_chart", "children"),
+        Input("timestamp", "data"),
         Input("altcoin", "data"),
+        Input("radio_altcoin_chart", "value"), 
         prevent_initial_call=True,
     )
-    def update_altcoin_card(altcoin):
+    def update_altcoin_card(timestamp, altcoin, timeframe):
         if altcoin in [None, ""]:
             raise PreventUpdate
         
-        altcoin_df = pd.read_csv(os.path.join("data", "klines", f"{altcoin}.csv")).iloc[-42:]
-        btc_df = pd.read_csv(os.path.join("data", "klines", "BTC.csv")).iloc[-42:]
+        altcoin_df = pd.read_csv(os.path.join("data", "klines", f"{altcoin}.csv"))
+        btc_df = pd.read_csv(os.path.join("data", "klines", "BTC.csv"))
+
+        if timeframe == "1W":
+            altcoin_df = altcoin_df.iloc[-42:]
+            btc_df = btc_df.iloc[-42:]
+        else:
+            altcoin_df = altcoin_df.iloc[-186:]
+            btc_df = btc_df.iloc[-186:]
 
         # TODO: Update chart and exchange links
 

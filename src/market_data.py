@@ -1,6 +1,5 @@
 import pandas as pd
 import os
-import time
 from typing import List, Dict
 
 from src.exchange_data import get_klines
@@ -14,12 +13,12 @@ def update_market_data() -> None:
     # TODO: Convert json config to csv file and read df directly here
     # fetch latest kline data
     df = get_info_df()
-    kline_dict = get_klines(df, interval=240, num_klines=60)
+    kline_dict = get_klines(df, interval=240, num_klines=186)
 
-    # compute gains from lowest lows within last 1D, 3D and 1W
+    # compute gains from lowest lows within last 1D, 1W and 1M
     df = _add_gains(
-        df=df, kline_dict=kline_dict, look_back=[6, 18, 42],
-        col_names=["gain_1d", "gain_3d", "gain_1w"],
+        df=df, kline_dict=kline_dict, look_back=[6, 42, 186],
+        col_names=["gain_1d", "gain_1w", "gain_1m"],
     )
 
     # compute strengths of current pumps
