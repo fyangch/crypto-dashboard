@@ -182,13 +182,19 @@ def register_callbacks(app: Dash):
         
         altcoin_df = pd.read_csv(os.path.join("data", "klines", f"{altcoin}.csv"))
         btc_df = pd.read_csv(os.path.join("data", "klines", "BTC.csv"))
+        n = altcoin_df.shape[0] 
 
         if timeframe == "1W":
-            altcoin_df = altcoin_df.iloc[-42:]
-            btc_df = btc_df.iloc[-42:]
+            altcoin_df = altcoin_df.iloc[-min(42, n):]
+            btc_df = btc_df.iloc[-min(42, n):]
         else:
-            altcoin_df = altcoin_df.iloc[-186:]
-            btc_df = btc_df.iloc[-186:]
+            altcoin_df = altcoin_df.iloc[-min(186, n):]
+            btc_df = btc_df.iloc[-min(186, n):]
+        
+        # index values may not coincide because of missing altcoin data
+        # e.g. in case of a new listing
+        altcoin_df.index = range(altcoin_df.shape[0])
+        btc_df.index = range(btc_df.shape[0])
 
         usd_chart = get_candlestick_figure(
             title=f"{altcoin} / USD",
