@@ -3,7 +3,6 @@ import os
 from typing import List, Dict
 
 from src.exchange_data import get_klines
-from src.utils import get_info_df
 
 
 def update_market_data() -> None:

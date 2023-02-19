@@ -76,7 +76,6 @@ pump_card = dbc.Card(
                     dict(id="gain_1w", name="Gain 1W", type="numeric", format=percentage),
                     dict(id="gain_1m", name="Gain 1M", type="numeric", format=percentage),
                 ],
-                sort_by=[{"column_id": "pump_strength", "direction": "desc"}],
                 **table_style_args,
             )
         ], 

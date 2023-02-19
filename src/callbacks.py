@@ -63,6 +63,7 @@ def register_callbacks(app: Dash):
         df = df.rename(columns={"name": "id"})
         df = df.loc[df["pump_strength"] > 2]
         df = df[["id", "pump_strength", "gain_1d", "gain_1w", "gain_1m"]]
+        df = df.sort_values(by=["pump_strength"], ascending=False)
 
         return df.to_dict("records")
 
