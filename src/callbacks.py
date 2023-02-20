@@ -12,6 +12,7 @@ from dash.exceptions import PreventUpdate
 from src.market_data import update_market_data
 from src.components.table_cards import get_row_highlight_condition
 from src.components.figures import get_candlestick_figure, get_bar_figure
+from src.utils import filter_df
 
 
 def register_callbacks(app: Dash):
@@ -43,11 +44,13 @@ def register_callbacks(app: Dash):
     @app.callback(
         Output("trend_table", "data"),
         Input("timestamp", "data"),
+        Input("radio_trend", "value"),
         prevent_initial_call=True,
     )
-    def update_trend_table(timestamp):
+    def update_trend_table(timestamp, filter):
         df = pd.read_csv(os.path.join("data", "market_data.csv"))
         df = df.rename(columns={"name": "id"})
+        df = filter_df(df, filter)
         #df = df.loc[df["trend_strength"] > -1.] # TODO: Set final threshold
         df = df[["id", "gain_1d", "gain_1w", "gain_1m"]]
 
@@ -57,13 +60,15 @@ def register_callbacks(app: Dash):
     @app.callback(
         Output("pump_table", "data"),
         Input("timestamp", "data"),
+        Input("radio_pump", "value"),
         prevent_initial_call=True,
     )
-    def update_pump_table(timestamp):
+    def update_pump_table(timestamp, filter):
         df = pd.read_csv(os.path.join("data", "market_data.csv"))
         df = df.rename(columns={"name": "id"})
+        df = filter_df(df, filter)
         df = df.loc[df["pump_strength"] > 2]
-        df = df[["id", "pump_strength", "gain_1d", "gain_1w", "gain_1m"]]
+        df = df[["id", "pump_strength", "gain_1d", "gain_1w", "gain_1m"]]   
         df = df.sort_values(by=["pump_strength"], ascending=False)
 
         return df.to_dict("records")
@@ -122,11 +127,13 @@ def register_callbacks(app: Dash):
     @app.callback(
         Output("bar_chart", "children"),
         Input("timestamp", "data"),
+        Input("radio_overview", "value"),
         prevent_initial_call=True,
     )
-    def update_overview_card(timestamp):
+    def update_overview_card(timestamp, filter):
         df = pd.read_csv(os.path.join("data", "market_data.csv"))
         df = df.rename(columns={"name": "id"})
+        df = filter_df(df, filter)
         df = df.sort_values(by=["gain_1d"], ascending=False).iloc[:30]
 
         return get_bar_figure(names=df["id"], gains=df["gain_1d"])
