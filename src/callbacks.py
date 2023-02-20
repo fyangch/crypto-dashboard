@@ -1,11 +1,9 @@
 import os
 import time
-import numpy as np
 import pandas as pd
 from datetime import datetime
-import plotly.graph_objects as go
 
-from dash import Dash, html, dcc, no_update, ctx, Output, Input, State
+from dash import Dash, no_update, ctx, Output, Input, State
 import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
 
@@ -91,12 +89,13 @@ def register_callbacks(app: Dash):
         Output("trend_table", "active_cell"), Output("trend_table", "selected_cells"), Output("trend_table", "style_data_conditional"),
         Output("pump_table", "active_cell"), Output("pump_table", "selected_cells"), Output("pump_table", "style_data_conditional"),
         Input("trend_table", "active_cell"),  Input("pump_table", "active_cell"), Input("timestamp", "data"),
+        Input("radio_trend", "value"),  Input("radio_pump", "value"),
         State("trend_table", "style_data_conditional"), State("pump_table", "style_data_conditional"),
         prevent_initial_call=True,
     )
-    def select_altcoin(active_cell_trend, active_cell_pump, timestamp, style_trend, style_pump):
-        # remove row highlighting on reloads
-        if ctx.triggered_id == "timestamp":
+    def select_altcoin(active_cell_trend, active_cell_pump, timestamp, filter_trend, filter_pump, style_trend, style_pump):
+        # remove row highlighting when reloading or applying filters
+        if ctx.triggered_id in ["timestamp", "radio_trend", "radio_pump"]:
             style_trend[1] = {}
             style_pump[1] = {}
             return no_update, None, [], style_trend, None, [], style_pump
@@ -215,7 +214,7 @@ def register_callbacks(app: Dash):
         btc_chart = get_candlestick_figure(
             title=f"{altcoin} / BTC",
             timestamp=altcoin_df["timestamp"],
-            open=altcoin_df["open"] / btc_df["close"], 
+            open=altcoin_df["open"] / btc_df["open"], 
             high=altcoin_df["high"] / btc_df["close"],
             low=altcoin_df["low"] / btc_df["close"], 
             close=altcoin_df["close"] / btc_df["close"],
