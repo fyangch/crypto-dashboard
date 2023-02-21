@@ -1,5 +1,6 @@
-import pandas as pd
+import time
 import requests
+import pandas as pd
 from requests.models import Response
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Dict
@@ -8,19 +9,19 @@ from typing import List, Dict
 """
 API docs:
     - https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data 
-    - https://bybit-exchange.github.io/docs/spot/v3/#t-querykline 
+    - https://bybit-exchange.github.io/docs/derivatives/public/kline
     - https://open.huobigroup.com/?name=kline 
     - https://docs.kucoin.com/#get-klines 
 """
 
 BINANCE_ENDPOINT = "https://api.binance.com/api/v3/klines"
-BYBIT_ENDPOINT = "https://api-testnet.bybit.com/spot/v3/public/quote/kline"
+BYBIT_ENDPOINT = "https://api.bybit.com/derivatives/v3/public/kline"
 HUOBI_ENDPOINT = "https://api.huobi.pro/market/history/kline"
 KUCOIN_ENDPOINT = "https://api.kucoin.com/api/v1/market/candles"
 
 INTERVALS = {
     "binance": {5: "5m", 15: "15m", 60: "1h", 240: "4h", 1440: "1d"},
-    "bybit": {5: "5m", 15: "15m", 60: "1h", 240: "4h", 1440: "1d"},
+    "bybit": {5: "5", 15: "15", 60: "60", 240: "240", 1440: "D"},
     "huobi": {5: "5min", 15: "15min", 60: "60min", 240: "4hour", 1440: "1day"},
     "kucoin": {5: "5min", 15: "15min", 60: "1hour", 240: "4hour", 1440: "1day"},
 }
@@ -92,17 +93,19 @@ def _get_response(
     """
     Send a kline data request for the given coin and return the response object.
     """
+    params = {
+        "symbol": info_df.loc[name, "symbol"],
+        "interval": INTERVALS[exchange][interval],
+        "limit": num_klines,
+    }
+
     exchange = info_df.loc[name, "exchange"]
     if exchange == "binance":
-        params = {
-            "symbol": info_df.loc[name, "symbol"],
-            "interval": INTERVALS[exchange][interval],
-            "limit": str(num_klines),
-        }
         return requests.get(BINANCE_ENDPOINT, params=params)
     elif exchange == "bybit":
-        # TODO
-        raise NotImplementedError()
+        params["end"] = int(time.time() * 1000) # in milliseconds
+        params["start"] = int(params["end"] - interval * num_klines * 60_000)
+        return requests.get(BYBIT_ENDPOINT, params=params)
     elif exchange == "huobi":
         # TODO
         raise NotImplementedError()
@@ -135,8 +138,17 @@ def _get_bybit_klines(response: Response) -> pd.DataFrame:
     Return data frame with kline data given a response from the Bybit API.
     Format of the kline data is consistent across all exchanges.
     """
-    # TODO
-    raise NotImplementedError()
+    data = response.json()["result"]["list"]
+    n = len(data)
+
+    # klines are in reversed order (last kline is at index 0)
+    return pd.DataFrame(data={
+        "timestamp": [int(data[i][0]) // 1000 for i in reversed(range(n))], # in seconds
+        "open": [float(data[i][1]) for i in reversed(range(n))],
+        "high": [float(data[i][2]) for i in reversed(range(n))],
+        "low": [float(data[i][3]) for i in reversed(range(n))],
+        "close": [float(data[i][4]) for i in reversed(range(n))],
+    })
 
 
 def _get_huobi_klines(response: Response) -> pd.DataFrame:
