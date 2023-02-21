@@ -13,6 +13,9 @@ def update_market_data() -> None:
     df = pd.read_csv(os.path.join("data", "config.csv"), index_col="name")
     kline_dict = get_klines(df, interval=240, num_klines=186)
 
+    # remove coins/tokens for which errors occured during the kline retrieval
+    df = df.loc[kline_dict.keys()]
+
     # compute gains from lowest lows within last 1D, 1W and 1M
     df = _add_gains(
         df=df, kline_dict=kline_dict, look_back=[6, 42, 186],

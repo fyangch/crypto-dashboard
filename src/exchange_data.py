@@ -53,16 +53,17 @@ def get_klines(
     names = info_df.index.values
     for i in range(len(names)):
         exchange = info_df.loc[names[i], "exchange"]
-        if exchange == "binance":
-            kline_dict[names[i]] = _get_binance_klines(responses[i])
-        elif exchange == "bybit":
-            kline_dict[names[i]] = _get_bybit_klines(responses[i])
-        elif exchange == "huobi":
-            kline_dict[names[i]] = _get_huobi_klines(responses[i])
-        elif exchange == "kucoin":
-            kline_dict[names[i]] = _get_kucoin_klines(responses[i])
-        else:
-            raise ValueError(f"Invalid exchange: {exchange}")
+        try:
+            if exchange == "binance":
+                kline_dict[names[i]] = _get_binance_klines(responses[i])
+            elif exchange == "bybit":
+                kline_dict[names[i]] = _get_bybit_klines(responses[i])
+            elif exchange == "huobi":
+                kline_dict[names[i]] = _get_huobi_klines(responses[i])
+            elif exchange == "kucoin":
+                kline_dict[names[i]] = _get_kucoin_klines(responses[i])
+        except:
+            print(f"Kline retrieval error! Name: {names[i]}, exchange: {exchange}")
     
     return kline_dict
 
@@ -93,13 +94,13 @@ def _get_response(
     """
     Send a kline data request for the given coin and return the response object.
     """
+    exchange = info_df.loc[name, "exchange"]
     params = {
         "symbol": info_df.loc[name, "symbol"],
         "interval": INTERVALS[exchange][interval],
         "limit": num_klines,
     }
-
-    exchange = info_df.loc[name, "exchange"]
+    
     if exchange == "binance":
         return requests.get(BINANCE_ENDPOINT, params=params)
     elif exchange == "bybit":
