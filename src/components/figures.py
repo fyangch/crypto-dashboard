@@ -9,6 +9,7 @@ figure_args = {
     "title_y": 0.98,
     "title_xanchor": "center",
     "title_yanchor": "top",
+    "title_xref": "paper",
     "xaxis": {"tickformat": "%b %d", "fixedrange": True},
     "yaxis": {"fixedrange": True},
     "margin": {"b": 0, "l": 0, "r": 0, "t": 30},
@@ -56,7 +57,7 @@ def get_bar_figure(names: pd.Series, gains: pd.Series):
 
     args = copy.deepcopy(figure_args)
     args["xaxis"]["tickmode"] = "linear"
-    args["height"] = 320
+    args["height"] = 328
 
     figure.update_layout(
         title_text="Top Gainers (1D)",

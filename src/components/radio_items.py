@@ -13,6 +13,9 @@ def get_radio_items(
         options=options, 
         value=options[0], 
         inline=True,
-        style={"text-align": alignment},
+        style={
+            "textAlign": alignment,
+            "marginRight": "-1em",
+        },
         className="dbc dbc-row-selectable",
     )

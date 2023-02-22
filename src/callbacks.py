@@ -10,6 +10,7 @@ from dash.exceptions import PreventUpdate
 from src.market_data import update_market_data
 from src.components.table_cards import get_row_highlight_condition
 from src.components.figures import get_candlestick_figure, get_bar_figure
+from src.components.exchange_dropdown import get_exchange_dropdown
 from src.utils import filter_df
 
 
@@ -160,19 +161,6 @@ def register_callbacks(app: Dash):
             close=df["close"],
         )
     
-    @app.callback(
-        Output("bitcoin_tradingview", "children"),
-        Output("bitcoin_exchanges", "children"),
-        Input("timestamp", "data"),
-        prevent_initial_call=True,
-    )
-    def update_bitcoin_links(timestamp):
-        df = pd.read_csv(os.path.join("data", "config.csv"), index_col="name")
-        tradingview_link = dbc.CardLink("TradingView", target="_blank", href=df.loc["BTC", "tradingview_usd"])
-        exchange_links = "" # TODO
-
-        return tradingview_link, exchange_links
-
 
     @app.callback(
         Output("altcoin_usd_chart", "children"), 
@@ -224,6 +212,20 @@ def register_callbacks(app: Dash):
 
 
     @app.callback(
+        Output("bitcoin_tradingview", "children"),
+        Output("bitcoin_exchanges", "children"),
+        Input("timestamp", "data"),
+        prevent_initial_call=True,
+    )
+    def update_bitcoin_links(timestamp):
+        df = pd.read_csv(os.path.join("data", "config.csv"), index_col="name")
+        tradingview_link = dbc.CardLink("TradingView", target="_blank", href=df.loc["BTC", "tradingview_usd"])
+        exchange_links = get_exchange_dropdown(df, "BTC")
+
+        return tradingview_link, exchange_links
+
+
+    @app.callback(
         Output("altcoin_tradingview", "children"),
         Output("altcoin_exchanges", "children"),
         Input("altcoin", "data"),
@@ -238,6 +240,26 @@ def register_callbacks(app: Dash):
         if type(df.loc[altcoin, "tradingview_btc"]) == str:
             tradingview_links.append(dbc.CardLink("TradingView (BTC)", target="_blank", href=df.loc[altcoin, "tradingview_btc"]))
 
-        exchange_links = "" # TODO
+        exchange_links = get_exchange_dropdown(df, altcoin)
 
         return tradingview_links, exchange_links
+
+    
+    @app.callback(
+        Output("trend_modal", "is_open"),
+        Input("trend_help_button", "n_clicks"), 
+        State("trend_modal", "is_open"),
+        prevent_initial_call=True,
+    )
+    def toggle_trend_modal(n_clicks, is_open):
+        return not is_open
+
+
+    @app.callback(
+        Output("pump_modal", "is_open"),
+        Input("pump_help_button", "n_clicks"), 
+        State("pump_modal", "is_open"),
+        prevent_initial_call=True,
+    )
+    def toggle_pump_modal(n_clicks, is_open):
+        return not is_open

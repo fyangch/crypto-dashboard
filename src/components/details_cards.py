@@ -1,4 +1,4 @@
-from dash import html, dcc
+from dash import html
 import dash_bootstrap_components as dbc
 
 from src.components.radio_items import get_radio_items
@@ -12,10 +12,13 @@ bitcoin_card = dbc.Card(
         ]),
         html.Div(id="bitcoin_chart"),
         html.Br(),
-        dbc.Row([
-            dbc.Col(id="bitcoin_tradingview"),
-            dbc.Col(id="bitcoin_exchanges"),
-        ]),
+        dbc.Row(
+            [
+                dbc.Col(id="bitcoin_tradingview", align="center"),
+                dbc.Col(id="bitcoin_exchanges"),
+            ], 
+            style={"marginBottom": "-0.5em"},
+        ),
     ], body=True
 )
 
@@ -32,9 +35,12 @@ altcoin_card = dbc.Card(
             dbc.Col([dbc.Row(dbc.Col(id="altcoin_btc_chart", width=12))], width=6),
         ]),
         html.Br(),
-        dbc.Row([
-            dbc.Col(id="altcoin_tradingview"),
-            dbc.Col(id="altcoin_exchanges"),
-        ]),
+        dbc.Row(
+            [
+                dbc.Col(id="altcoin_tradingview", align="center"),
+                dbc.Col(id="altcoin_exchanges"),
+            ],
+            style={"marginBottom": "-0.5em"},
+        ),
     ], body=True
 )
