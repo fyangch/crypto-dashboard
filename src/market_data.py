@@ -7,13 +7,13 @@ from src.exchange_data import get_klines
 
 def update_market_data() -> None:
     """
-    Update all data frame values using the latest exchange data.
+    Update and save all market data values using the latest exchange data.
     """
     # fetch latest kline data
     df = pd.read_csv(os.path.join("data", "config.csv"), index_col="name")
-    kline_dict = get_klines(df, interval=240, num_klines=186)
+    kline_dict = get_klines(df, interval=240, num_klines=200)
 
-    # remove coins/tokens for which errors occured during the kline retrieval
+    # discard coins/tokens for which errors occured during the kline retrieval
     df = df.loc[kline_dict.keys()]
 
     # compute gains from lowest lows within last 1D, 1W and 1M

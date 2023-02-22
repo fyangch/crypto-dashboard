@@ -94,25 +94,37 @@ def _get_response(
     """
     Send a kline data request for the given coin and return the response object.
     """
-    exchange = info_df.loc[name, "exchange"]
-    params = {
-        "symbol": info_df.loc[name, "symbol"],
-        "interval": INTERVALS[exchange][interval],
-        "limit": num_klines,
-    }
-    
+    exchange = info_df.loc[name, "exchange"]    
     if exchange == "binance":
+        params = {
+            "symbol": info_df.loc[name, "symbol"],
+            "interval": INTERVALS[exchange][interval],
+            "limit": num_klines,
+        }
         return requests.get(BINANCE_ENDPOINT, params=params)
     elif exchange == "bybit":
-        params["end"] = int(time.time() * 1000) # in milliseconds
-        params["start"] = int(params["end"] - interval * num_klines * 60_000)
+        params = {
+            "symbol": info_df.loc[name, "symbol"],
+            "interval": INTERVALS[exchange][interval],
+            "limit": num_klines,
+            "end": int(time.time()) * 1000, # in milliseconds
+            "start": int(time.time()) * 1000 - interval * num_klines * 60_000,
+        }
         return requests.get(BYBIT_ENDPOINT, params=params)
     elif exchange == "huobi":
-        # TODO
-        raise NotImplementedError()
+        params = {
+            "symbol": info_df.loc[name, "symbol"].lower(),
+            "period": INTERVALS[exchange][interval],
+            "size": num_klines,
+        }
+        return requests.get(HUOBI_ENDPOINT, params=params)
     elif exchange == "kucoin":
-        # TODO
-        raise NotImplementedError()
+        params = {
+            "symbol": info_df.loc[name, "symbol"],
+            "type": INTERVALS[exchange][interval],
+            "startAt": int(time.time()) - interval * num_klines * 60,
+        }
+        return requests.get(KUCOIN_ENDPOINT, params=params)
     else:
         raise ValueError(f"Invalid exchange: {exchange}")
 
@@ -157,8 +169,17 @@ def _get_huobi_klines(response: Response) -> pd.DataFrame:
     Return data frame with kline data given a response from the Huobi API.
     Format of the kline data is consistent across all exchanges.
     """
-    # TODO
-    raise NotImplementedError()
+    data = response.json()["data"]
+    n = len(data)
+
+    # klines are in reversed order (last kline is at index 0)
+    return pd.DataFrame(data={
+        "timestamp": [int(data[i]["id"]) for i in reversed(range(n))],
+        "open": [float(data[i]["open"]) for i in reversed(range(n))],
+        "high": [float(data[i]["high"]) for i in reversed(range(n))],
+        "low": [float(data[i]["low"]) for i in reversed(range(n))],
+        "close": [float(data[i]["close"]) for i in reversed(range(n))],
+    })
 
 
 def _get_kucoin_klines(response: Response) -> pd.DataFrame:
@@ -166,5 +187,14 @@ def _get_kucoin_klines(response: Response) -> pd.DataFrame:
     Return data frame with kline data given a response from the KuCoin API.
     Format of the kline data is consistent across all exchanges.
     """
-    # TODO
-    raise NotImplementedError()
+    data = response.json()["data"]
+    n = len(data)
+
+    # klines are in reversed order (last kline is at index 0)
+    return pd.DataFrame(data={
+        "timestamp": [int(data[i][0]) for i in reversed(range(n))],
+        "open": [float(data[i][1]) for i in reversed(range(n))],
+        "high": [float(data[i][3]) for i in reversed(range(n))],
+        "low": [float(data[i][4]) for i in reversed(range(n))],
+        "close": [float(data[i][2]) for i in reversed(range(n))],
+    })
