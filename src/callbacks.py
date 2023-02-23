@@ -242,23 +242,3 @@ def register_callbacks(app: Dash):
         exchange_links = get_exchange_dropdown(df, altcoin)
 
         return tradingview_links, exchange_links
-
-    
-    @app.callback(
-        Output("trend_modal", "is_open"),
-        Input("trend_help_button", "n_clicks"), 
-        State("trend_modal", "is_open"),
-        prevent_initial_call=True,
-    )
-    def toggle_trend_modal(n_clicks, is_open):
-        return not is_open
-
-
-    @app.callback(
-        Output("pump_modal", "is_open"),
-        Input("pump_help_button", "n_clicks"), 
-        State("pump_modal", "is_open"),
-        prevent_initial_call=True,
-    )
-    def toggle_pump_modal(n_clicks, is_open):
-        return not is_open

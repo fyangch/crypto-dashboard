@@ -3,7 +3,6 @@ import dash_bootstrap_components as dbc
 from dash.dash_table import DataTable, FormatTemplate
 
 from src.components.radio_items import get_radio_items
-from src.components.modals import trend_modal, pump_modal
 
 
 percentage = FormatTemplate.percentage(1)
@@ -30,16 +29,6 @@ table_style_args = {
     ],
 }
 
-help_button_args = {
-    "color": "link", 
-    "size": "lg", 
-    "style": {
-        "float": "right", 
-        "marginTop": "-0.5em",
-        "marginRight": "-0.5em",
-    },
-}
-
 def get_row_highlight_condition(row_index: int) -> dict:
     return  {
         "if": {"row_index": row_index},
@@ -50,11 +39,7 @@ def get_row_highlight_condition(row_index: int) -> dict:
 trend_card = dbc.Card(
     html.Div(
         [
-            dbc.Row([
-                dbc.Col(html.H4("Uptrend Screener")),
-                dbc.Col(dbc.Button("?", id="trend_help_button", **help_button_args)),
-            ]),            
-            trend_modal,
+            dbc.Col(html.H4("Uptrend Screener")),           
             get_radio_items(id="radio_trend", options=["All", "Watchlist", "Tier 1", "Tier 2", "Tier 3", "Tier 4"]),
             DataTable(
                 id="trend_table",
@@ -79,11 +64,7 @@ trend_card = dbc.Card(
 pump_card = dbc.Card(
     html.Div(
         [   
-            dbc.Row([
-                dbc.Col(html.H4("Pump Screener")),
-                dbc.Col(dbc.Button("?", id="pump_help_button", **help_button_args)),
-            ]),
-            pump_modal,
+            dbc.Col(html.H4("Pump Screener")),
             get_radio_items(id="radio_pump", options=["All", "Watchlist", "Tier 1", "Tier 2", "Tier 3", "Tier 4"]),
             DataTable(
                 id="pump_table",
