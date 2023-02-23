@@ -19,7 +19,7 @@ link_dropdown = dbc.DropdownMenu(
 info_card = dbc.Card(
     dbc.Row([
         dbc.Col([
-            html.H3("Crypto Dashboard"),
+            html.H3("Cryptocurrency Dashboard"),
             html.P("Last update:", id="last_update_text"),
         ]),
         dbc.Col(
