@@ -1,5 +1,7 @@
-import pandas as pd
 import os
+import time
+import numpy as np
+import pandas as pd
 from typing import List, Dict
 
 from src.exchange_data import get_klines
@@ -22,7 +24,10 @@ def update_market_data() -> None:
         col_names=["gain_1d", "gain_1w", "gain_1m"],
     )
 
-    # compute strengths of current pumps
+    # compute strength of current uptrends
+    df = _add_trend_strengths(df, kline_dict)
+
+    # compute strength of current pumps
     df = _add_pump_strengths(df, kline_dict)
 
     # save updated data
@@ -58,14 +63,53 @@ def _add_gains(
     return df
 
 
+def _add_trend_strengths(
+    df: pd.DataFrame,
+    kline_dict: Dict[str, pd.DataFrame],
+    ) -> pd.DataFrame:
+    """
+    Compute the strength of the current uptrends. For that, EMAs with lengths 12, 21 and 50 are computed
+    and compared with each other. The most recent klines will be discarded for the computation if they 
+    are less than 1 hour old.
+    """
+    strengths = []
+    for name in df.index:
+        klines = kline_dict[name]
+
+        # check age of last kline
+        if time.time() - klines["timestamp"].iloc[-1] < 3600:
+            klines = klines.iloc[:-1]
+
+        # compute most recent EMA values with USD as denominator
+        ema_12 = klines["close"].ewm(span=12).mean()
+        ema_21 = klines["close"].ewm(span=21).mean()
+        ema_50 = klines["close"].ewm(span=50).mean()
+
+        # compute strength of uptrend using EMA values
+        scores = np.array([
+            # compare current EMA values with previous ones
+            ema_12.iloc[-1] / ema_12.iloc[-2],
+            ema_21.iloc[-1] / ema_21.iloc[-2],
+            ema_50.iloc[-1] / ema_50.iloc[-2],
+
+            # compare EMA 12/21 values with EMA 21/50 values
+            ema_12.iloc[-1] / ema_21.iloc[-1],
+            ema_21.iloc[-1] / ema_50.iloc[-1],
+        ])
+        strengths.append(scores.mean() - 1.)
+
+    df["trend_strength"] = strengths
+    return df
+
+
 def _add_pump_strengths(
     df: pd.DataFrame,
     kline_dict: Dict[str, pd.DataFrame],
-    look_back: int = 45,
+    look_back: int = 42,
     ) -> pd.DataFrame:
     """
     Compute the strength of the current pumps. For that, the largest kline range (without wicks) of the 
-    last 3 klines is compared with the mean of the absolute kline ranges within the last week.
+    last 3 klines is compared with the mean and std of the absolute kline ranges within the last week.
     """
     strengths = []
     for name in df.index:
@@ -73,7 +117,12 @@ def _add_pump_strengths(
         ranges = (klines["close"] - klines["open"])
         max_range = ranges.iloc[-3:].max()
         mean = ranges.iloc[:-3].abs().mean()
-        strengths.append(max_range / mean - 1.)
+        std = ranges.iloc[:-3].abs().std()
+
+        if max_range > mean + 2 * std:
+            strengths.append(max_range / mean - 1.)
+        else:
+            strengths.append(0.)
 
     df["pump_strength"] = strengths
     return df

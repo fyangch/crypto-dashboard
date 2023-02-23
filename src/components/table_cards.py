@@ -61,13 +61,13 @@ trend_card = dbc.Card(
                 data=list(), 
                 columns=[
                     dict(id="id", name="Name"),
-                    dict(id="trend_strength", name="Trend Strength", type="numeric", format=percentage),
+                    dict(id="trend_strength", name="Trend Strength", type="numeric", format=FormatTemplate.percentage(2)),
                     dict(id="gain_1d", name="Gain 1D", type="numeric", format=percentage),
                     dict(id="gain_1w", name="Gain 1W", type="numeric", format=percentage),
                     dict(id="gain_1m", name="Gain 1M", type="numeric", format=percentage),
                 ],
                 sort_action="native",
-                sort_by=[{"column_id": "gain_1d", "direction": "desc"}],
+                sort_by=[{"column_id": "trend_strength", "direction": "desc"}],
                 **table_style_args,
             )
         ], 

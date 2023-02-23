@@ -27,7 +27,7 @@ def register_callbacks(app: Dash):
     def update_data(n_clicks):
         # update market data on startup or when button clicked
         timestamp = int(time.time())
-        #update_market_data() # TODO: UNCOMMENT!
+        update_market_data()
         return timestamp
 
 
@@ -50,8 +50,7 @@ def register_callbacks(app: Dash):
         df = pd.read_csv(os.path.join("data", "market_data.csv"))
         df = df.rename(columns={"name": "id"})
         df = filter_df(df, filter)
-        #df = df.loc[df["trend_strength"] > -1.] # TODO: Set final threshold
-        df = df[["id", "gain_1d", "gain_1w", "gain_1m"]]
+        df = df[["id", "trend_strength", "gain_1d", "gain_1w", "gain_1m"]]
 
         return df.to_dict("records")
 
