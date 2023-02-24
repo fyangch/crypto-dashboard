@@ -4,6 +4,7 @@ import dash_bootstrap_components as dbc
 from src.components.radio_items import get_radio_items
 
 
+# card with details about Bitcoin (chart, TradingView link, exchange links)
 bitcoin_card = dbc.Card(
     [
         dbc.Row([
@@ -22,6 +23,7 @@ bitcoin_card = dbc.Card(
     ], body=True
 )
 
+# card with details about the currently selected altcoin (charts, TradingView links, exchange links)
 altcoin_card = dbc.Card(
     [
         dbc.Row([

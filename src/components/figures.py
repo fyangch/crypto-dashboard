@@ -48,7 +48,8 @@ box_args = {
 }
 
 
-def get_bar_figure(names: pd.Series, gains: pd.Series):
+def get_bar_figure(names: pd.Series, gains: pd.Series) -> dcc.Graph:
+    """ Return bar figure with top gainers of the last 24 hours. """
     figure = go.Figure(data=go.Bar(
         x=names,
         y=gains,
@@ -76,7 +77,7 @@ def get_candlestick_figure(
     low: pd.Series,
     close: pd.Series,
     ) -> dcc.Graph:
-
+    """ Create and return a candlestick chart using the passed kline data. """
     datetime = pd.to_datetime(timestamp, unit="s")
     
     figure = go.Figure(data=go.Candlestick(
@@ -90,15 +91,18 @@ def get_candlestick_figure(
         **figure_args,
     )
 
-    # add annotations to chart
+    # required values for the chart annotations
     lowest_low = low.min()
     current_close = close.iloc[-1]
     index = low[low == lowest_low].index[0]
     gain = (current_close / lowest_low - 1.) * 100.
 
+    # horizontal lines that mark the price levels of the lowest low
+    # and the current close
     figure.add_hline(y=lowest_low, **h_line_args)
     figure.add_hline(y=current_close, **h_line_args)
 
+    # vertical arrow that visualizes the current gain
     figure.add_annotation(
         x=datetime[index],
         y=current_close,
@@ -107,6 +111,7 @@ def get_candlestick_figure(
         **arrow_args,
     )
 
+    # annotation box containing the gain value
     figure.add_annotation(
         x=datetime[index],
         y=0.5 * (current_close + lowest_low),

@@ -33,7 +33,6 @@ def update_market_data() -> None:
     # save updated data
     if not os.path.exists(os.path.join("data", "klines")):
         os.makedirs(os.path.join("data", "klines"))
-
     df.to_csv(os.path.join("data", "market_data.csv"), index_label="name")
     for name in kline_dict:
         kline_dict[name].to_csv(os.path.join("data", "klines", f"{name}.csv"))
@@ -76,11 +75,11 @@ def _add_trend_strengths(
     for name in df.index:
         klines = kline_dict[name]
 
-        # check age of last kline
+        # discard last kline if it is less than 1 hour old
         if time.time() - klines["timestamp"].iloc[-1] < 3600:
             klines = klines.iloc[:-1]
 
-        # compute most recent EMA values with USD as denominator
+        # compute most EMAs
         ema_12 = klines["close"].ewm(span=12).mean()
         ema_21 = klines["close"].ewm(span=21).mean()
         ema_50 = klines["close"].ewm(span=50).mean()

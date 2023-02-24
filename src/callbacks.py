@@ -25,7 +25,10 @@ def register_callbacks(app: Dash):
         ]
     )
     def update_data(n_clicks):
-        # update market data on startup or when button clicked
+        """ 
+        Update all market data on startup or when the update button was clicked. 
+        Once the data is ready, the timestamp is updated, which triggers other callbacks.
+        """
         timestamp = int(time.time())
         update_market_data()
         return timestamp
@@ -37,6 +40,7 @@ def register_callbacks(app: Dash):
         prevent_initial_call=True,
     )
     def set_last_update_text(timestamp):
+        """ Display the time of the last update once the new data is available. """
         return f"Last update: {datetime.fromtimestamp(timestamp).strftime('%d.%m.%Y, %H:%M')}"
 
     
@@ -47,6 +51,7 @@ def register_callbacks(app: Dash):
         prevent_initial_call=True,
     )
     def update_trend_table(timestamp, filter):
+        """ Update the data table of the uptrend screener whenever the data was updated or another filter was selected. """
         df = pd.read_csv(os.path.join("data", "market_data.csv"))
         df = df.rename(columns={"name": "id"})
         df = filter_df(df, filter)
@@ -62,6 +67,7 @@ def register_callbacks(app: Dash):
         prevent_initial_call=True,
     )
     def update_pump_table(timestamp, filter):
+        """ Update the data table of the pump screener whenever the data was updated or another filter was selected. """
         df = pd.read_csv(os.path.join("data", "market_data.csv"))
         df = df.rename(columns={"name": "id"})
         df = filter_df(df, filter)
@@ -79,6 +85,10 @@ def register_callbacks(app: Dash):
         Input("trend_table", "sort_by"),
     )
     def reset_to_first_page(timestamp, sort_by):
+        """ 
+        Go to the first page of both data tables whenever the data was updated. 
+        Go to the first page of the uptrend data table whenever the user changes the sorting.
+        """
         if ctx.triggered_id == "timestamp":
             return 0, 0
         return 0, no_update
@@ -94,7 +104,8 @@ def register_callbacks(app: Dash):
         prevent_initial_call=True,
     )
     def select_altcoin(active_cell_trend, active_cell_pump, timestamp, filter_trend, filter_pump, style_trend, style_pump):
-        # remove row highlighting when reloading or applying filters
+        """ Highlight the table row of the currently selected altcoin. """
+        # remove highlighting when reloading or applying filters
         if ctx.triggered_id in ["timestamp", "radio_trend", "radio_pump"]:
             style_trend[1] = {}
             style_pump[1] = {}
@@ -130,6 +141,7 @@ def register_callbacks(app: Dash):
         prevent_initial_call=True,
     )
     def update_overview_card(timestamp, filter):
+        """ Update the bar figure containing the top gainers whenever the data was updated or another filter was selected. """
         df = pd.read_csv(os.path.join("data", "market_data.csv"))
         df = df.rename(columns={"name": "id"})
         df = filter_df(df, filter)
@@ -145,6 +157,7 @@ def register_callbacks(app: Dash):
         prevent_initial_call=True,
     )
     def update_bitcoin_chart(timestamp, timeframe):
+        """ Update the Bitcoin chart whenever the data was updated or another timeframe was selected. """
         df = pd.read_csv(os.path.join("data", "klines", "BTC.csv"))
         if timeframe == "1W":
             df = df.iloc[-42:]
@@ -170,6 +183,7 @@ def register_callbacks(app: Dash):
         prevent_initial_call=True,
     )
     def update_altcoin_charts(timestamp, altcoin, timeframe):
+        """ Update both altcoin charts whenever the data was updated or another timeframe was selected. """
         if altcoin in [None, ""]:
             raise PreventUpdate
         
@@ -184,8 +198,8 @@ def register_callbacks(app: Dash):
             altcoin_df = altcoin_df.iloc[-min(186, n):]
             btc_df = btc_df.iloc[-min(186, n):]
         
-        # index values may not coincide because of missing altcoin data
-        # e.g. in case of a new listing
+        # set new index values because the indices may not coincide with each other due to missing
+        # altcoin data, e.g. in case of a new listing
         altcoin_df.index = range(altcoin_df.shape[0])
         btc_df.index = range(btc_df.shape[0])
 
@@ -217,6 +231,7 @@ def register_callbacks(app: Dash):
         prevent_initial_call=True,
     )
     def update_bitcoin_links(timestamp):
+        """ Update the TradingView and exchange links for Bitcoin whenever the data was updated. """
         df = pd.read_csv(os.path.join("data", "config.csv"), index_col="name")
         tradingview_link = dbc.CardLink("TradingView", target="_blank", href=df.loc["BTC", "tradingview_usd"])
         exchange_links = get_exchange_dropdown(df, "BTC")
@@ -231,6 +246,7 @@ def register_callbacks(app: Dash):
         prevent_initial_call=True,
     )
     def update_altcoin_links(altcoin):
+        """ Update the TradingView and exchange links for the current altcoin whenever a new altcoin was selected. """
         df = pd.read_csv(os.path.join("data", "config.csv"), index_col="name")
 
         tradingview_links = []

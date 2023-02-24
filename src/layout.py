@@ -7,9 +7,10 @@ from src.components.details_cards import bitcoin_card, altcoin_card
 from src.components.table_cards import trend_card, pump_card
 
 
+# main layout of the dashboard
 layout = html.Div(
     [
-        dcc.Store(id="timestamp", data=0), # timestamp of latest update
+        dcc.Store(id="timestamp", data=0), # timestamp of most recent update
         dcc.Store(id="altcoin", data=""), # which altcoin is currently selected
         dbc.Container(
             [

@@ -16,6 +16,7 @@ link_dropdown = dbc.DropdownMenu(
     align_end=True,
 )
 
+# card at the top that shows the time of the last update and links to external sites.
 info_card = dbc.Card(
     dbc.Row([
         dbc.Col([

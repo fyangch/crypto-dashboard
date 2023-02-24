@@ -1,8 +1,8 @@
 import pandas as pd
-from typing import List, Tuple
 
 
 def filter_df(df: pd.DataFrame, filter: str) -> pd.DataFrame:
+    """ Filter and return data frame according to the current radio item selection. """
     if filter == "All":
         return df
     elif filter == "Watchlist":

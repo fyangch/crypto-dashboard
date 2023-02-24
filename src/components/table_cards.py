@@ -25,17 +25,22 @@ table_style_args = {
         "if": {"row_index": "odd"},
         "backgroundColor": "rgb(32, 32, 32)",
         },
-        {}, # dummy condition to insert dynamic highlight conditions
+        {}, # dummy condition to insert dynamic highlight condition
     ],
 }
 
 def get_row_highlight_condition(row_index: int) -> dict:
+    """ 
+    Return an entry for the conditional style dictionary of the data table such that the table row of the 
+    currently selected altcoin is highlighted.
+    """
     return  {
         "if": {"row_index": row_index},
         "backgroundColor": "rgb(0, 188, 140)",
         "border": "0px",
     }
 
+# card that contains the data table of the uptrend screener
 trend_card = dbc.Card(
     html.Div(
         [
@@ -61,6 +66,7 @@ trend_card = dbc.Card(
     body=True,
 )
 
+# card that contains the data table of the pump screener
 pump_card = dbc.Card(
     html.Div(
         [   

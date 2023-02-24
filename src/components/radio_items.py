@@ -7,7 +7,7 @@ def get_radio_items(
         options: List[str],
         alignment: str = "center",
     ) -> dbc.RadioItems:
-
+    """ Return radio items with the passed options. """
     return dbc.RadioItems(
         id=id,
         options=options, 
