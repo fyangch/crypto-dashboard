@@ -86,12 +86,6 @@ def _add_trend_strengths(
 
         # compute strength of uptrend using EMA values
         scores = np.array([
-            # compare current EMA values with previous ones
-            ema_12.iloc[-1] / ema_12.iloc[-2],
-            ema_21.iloc[-1] / ema_21.iloc[-2],
-            ema_50.iloc[-1] / ema_50.iloc[-2],
-
-            # compare EMA 12/21 values with EMA 21/50 values
             ema_12.iloc[-1] / ema_21.iloc[-1],
             ema_21.iloc[-1] / ema_50.iloc[-1],
         ])
