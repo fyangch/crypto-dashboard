@@ -9,13 +9,13 @@ from typing import List, Dict
 """
 API docs:
     - https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data 
-    - https://bybit-exchange.github.io/docs/derivatives/public/kline
+    - https://bybit-exchange.github.io/docs/v5/market/kline
     - https://open.huobigroup.com/?name=kline 
     - https://docs.kucoin.com/#get-klines 
 """
 
 BINANCE_ENDPOINT = "https://api.binance.com/api/v3/klines"
-BYBIT_ENDPOINT = "https://api.bybit.com/derivatives/v3/public/kline"
+BYBIT_ENDPOINT = "https://api.bybit.com/v5/market/kline"
 HUOBI_ENDPOINT = "https://api.huobi.pro/market/history/kline"
 KUCOIN_ENDPOINT = "https://api.kucoin.com/api/v1/market/candles"
 
@@ -56,7 +56,7 @@ def get_klines(
         try:
             if exchange == "binance":
                 kline_dict[names[i]] = _get_binance_klines(responses[i])
-            elif exchange == "bybit":
+            elif "bybit" in exchange:
                 kline_dict[names[i]] = _get_bybit_klines(responses[i])
             elif exchange == "huobi":
                 kline_dict[names[i]] = _get_huobi_klines(responses[i])
@@ -102,13 +102,12 @@ def _get_response(
             "limit": num_klines,
         }
         return requests.get(BINANCE_ENDPOINT, params=params)
-    elif exchange == "bybit":
+    elif "bybit" in exchange:
         params = {
+            "category": "spot" if "spot" in exchange else "linear",
             "symbol": info_df.loc[name, "symbol"],
-            "interval": INTERVALS[exchange][interval],
+            "interval": INTERVALS["bybit"][interval],
             "limit": num_klines,
-            "end": int(time.time()) * 1000, # in milliseconds
-            "start": int(time.time()) * 1000 - interval * num_klines * 60_000,
         }
         return requests.get(BYBIT_ENDPOINT, params=params)
     elif exchange == "huobi":
