@@ -76,8 +76,7 @@ def _get_all_responses(
     """
     Send kline data requests for all the coins in info_df and return all the response objects.
     """
-    # multithreading yields a speedup of approximately 7-10x
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers=50) as executor:
         futures = [
             executor.submit(_get_response, name, info_df, interval, num_klines) 
             for name in info_df.index
