@@ -11,7 +11,7 @@ from src.market_data import update_market_data
 from src.components.table_cards import get_row_highlight_condition
 from src.components.figures import get_candlestick_figure, get_bar_figure
 from src.components.exchange_dropdown import get_exchange_dropdown
-from src.utils import filter_df
+from src.utils import filter_df, add_emas
 
 
 def register_callbacks(app: Dash):
@@ -159,6 +159,8 @@ def register_callbacks(app: Dash):
     def update_bitcoin_chart(timestamp, timeframe):
         """ Update the Bitcoin chart whenever the data was updated or another timeframe was selected. """
         klines = pd.read_csv(os.path.join("data", "klines", "BTC.csv"), index_col="timestamp")
+        klines = add_emas(klines=klines, ema_lengths=[12, 21, 50])
+
         if timeframe == "1W":
             klines = klines.iloc[-42:]
         else:
@@ -191,6 +193,9 @@ def register_callbacks(app: Dash):
                 "close": usd_denom_klines["close"] / btc_klines["close"],
             },
         ).dropna()
+
+        usd_denom_klines = add_emas(klines=usd_denom_klines, ema_lengths=[12, 21, 50])
+        btc_denom_klines = add_emas(klines=btc_denom_klines, ema_lengths=[12, 21, 50])
 
         if timeframe == "1W":
             usd_denom_klines = usd_denom_klines.iloc[-42:]

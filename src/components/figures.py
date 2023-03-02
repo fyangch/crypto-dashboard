@@ -12,6 +12,7 @@ figure_args = {
     "title_xref": "paper",
     "xaxis": {"tickformat": "%b %d", "fixedrange": True},
     "yaxis": {"fixedrange": True},
+    "showlegend": False,
     "margin": {"b": 0, "l": 0, "r": 0, "t": 30},
     "height": 300,
 }
@@ -84,6 +85,11 @@ def get_candlestick_figure(title: str, klines: pd.DataFrame) -> dcc.Graph:
         hovermode=False,
         **figure_args,
     )
+
+    # add EMAs
+    for col in ["ema_12", "ema_21", "ema_50"]:
+        if col in klines.columns:
+            figure.add_scatter(x=datetime, y=klines[col], mode="lines")
 
     # required values for the chart annotations
     lowest_low = klines["low"].min()
