@@ -158,20 +158,13 @@ def register_callbacks(app: Dash):
     )
     def update_bitcoin_chart(timestamp, timeframe):
         """ Update the Bitcoin chart whenever the data was updated or another timeframe was selected. """
-        df = pd.read_csv(os.path.join("data", "klines", "BTC.csv"))
+        klines = pd.read_csv(os.path.join("data", "klines", "BTC.csv"), index_col="timestamp")
         if timeframe == "1W":
-            df = df.iloc[-42:]
+            klines = klines.iloc[-42:]
         else:
-            df = df.iloc[-186:]
+            klines = klines.iloc[-186:]
 
-        return get_candlestick_figure(
-            title="BTC / USD",
-            timestamp=df["timestamp"],
-            open=df["open"], 
-            high=df["high"],
-            low=df["low"], 
-            close=df["close"],
-        )
+        return get_candlestick_figure(title="BTC / USD", klines=klines)
     
 
     @app.callback(
@@ -187,39 +180,27 @@ def register_callbacks(app: Dash):
         if altcoin in [None, ""]:
             raise PreventUpdate
         
-        altcoin_df = pd.read_csv(os.path.join("data", "klines", f"{altcoin}.csv"))
-        btc_df = pd.read_csv(os.path.join("data", "klines", "BTC.csv"))
-        n = altcoin_df.shape[0] 
+        btc_klines = pd.read_csv(os.path.join("data", "klines", "BTC.csv"), index_col="timestamp")
+        usd_denom_klines = pd.read_csv(os.path.join("data", "klines", f"{altcoin}.csv"), index_col="timestamp")
+        btc_denom_klines = pd.DataFrame(
+            index=usd_denom_klines.index,
+            data={
+                "open": usd_denom_klines["open"] / btc_klines["open"], 
+                "high": usd_denom_klines["high"] / btc_klines["close"],
+                "low": usd_denom_klines["low"] / btc_klines["close"], 
+                "close": usd_denom_klines["close"] / btc_klines["close"],
+            },
+        ).dropna()
 
         if timeframe == "1W":
-            altcoin_df = altcoin_df.iloc[-min(42, n):]
-            btc_df = btc_df.iloc[-min(42, n):]
+            usd_denom_klines = usd_denom_klines.iloc[-42:]
+            btc_denom_klines = btc_denom_klines.iloc[-42:]
         else:
-            altcoin_df = altcoin_df.iloc[-min(186, n):]
-            btc_df = btc_df.iloc[-min(186, n):]
-        
-        # set new index values because the indices may not coincide with each other due to missing
-        # altcoin data, e.g. in case of a new listing
-        altcoin_df.index = range(altcoin_df.shape[0])
-        btc_df.index = range(btc_df.shape[0])
+            usd_denom_klines = usd_denom_klines.iloc[-186:]
+            btc_denom_klines = btc_denom_klines.iloc[-186:]
 
-        usd_chart = get_candlestick_figure(
-            title=f"{altcoin} / USD",
-            timestamp=altcoin_df["timestamp"],
-            open=altcoin_df["open"], 
-            high=altcoin_df["high"],
-            low=altcoin_df["low"], 
-            close=altcoin_df["close"],
-        )
-
-        btc_chart = get_candlestick_figure(
-            title=f"{altcoin} / BTC",
-            timestamp=altcoin_df["timestamp"],
-            open=altcoin_df["open"] / btc_df["open"], 
-            high=altcoin_df["high"] / btc_df["close"],
-            low=altcoin_df["low"] / btc_df["close"], 
-            close=altcoin_df["close"] / btc_df["close"],
-        )
+        usd_chart = get_candlestick_figure(title=f"{altcoin} / USD", klines=usd_denom_klines)
+        btc_chart = get_candlestick_figure(title=f"{altcoin} / BTC", klines=btc_denom_klines)
 
         return usd_chart, btc_chart
 

@@ -69,20 +69,14 @@ def get_bar_figure(names: pd.Series, gains: pd.Series) -> dcc.Graph:
     return dcc.Graph(figure=figure, config={"displayModeBar": False})
 
 
-def get_candlestick_figure(
-    title: str,
-    timestamp: pd.Series,
-    open: pd.Series,
-    high: pd.Series,
-    low: pd.Series,
-    close: pd.Series,
-    ) -> dcc.Graph:
+def get_candlestick_figure(title: str, klines: pd.DataFrame) -> dcc.Graph:
     """ Create and return a candlestick chart using the passed kline data. """
-    datetime = pd.to_datetime(timestamp, unit="s")
+    datetime = pd.to_datetime(klines.index, unit="s")
     
     figure = go.Figure(data=go.Candlestick(
         x=datetime,
-        open=open, high=high, low=low, close=close,
+        open=klines["open"], high=klines["high"], 
+        low=klines["low"], close=klines["close"],
     ))
     figure.update_layout(
         title_text=title,
@@ -92,9 +86,10 @@ def get_candlestick_figure(
     )
 
     # required values for the chart annotations
-    lowest_low = low.min()
-    current_close = close.iloc[-1]
-    index = low[low == lowest_low].index[0]
+    lowest_low = klines["low"].min()
+    current_close = klines["close"].iloc[-1]
+    timestamp_low = klines["low"][klines["low"] == lowest_low].index[0]
+    datetime_low = pd.to_datetime(timestamp_low, unit="s")
     gain = (current_close / lowest_low - 1.) * 100.
 
     # horizontal lines that mark the price levels of the lowest low
@@ -104,16 +99,16 @@ def get_candlestick_figure(
 
     # vertical arrow that visualizes the current gain
     figure.add_annotation(
-        x=datetime[index],
+        x=datetime_low,
         y=current_close,
-        ax=datetime[index],
+        ax=datetime_low,
         ay=lowest_low,
         **arrow_args,
     )
 
     # annotation box containing the gain value
     figure.add_annotation(
-        x=datetime[index],
+        x=datetime_low,
         y=0.5 * (current_close + lowest_low),
         text="{:.1f}".format(gain) + "%",
         **box_args,

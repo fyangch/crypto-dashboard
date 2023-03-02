@@ -36,7 +36,7 @@ def update_market_data() -> None:
         os.makedirs(os.path.join("data", "klines"))
     df.to_csv(os.path.join("data", "market_data.csv"), index_label="name")
     for name in kline_dict:
-        kline_dict[name].to_csv(os.path.join("data", "klines", f"{name}.csv"))
+        kline_dict[name].to_csv(os.path.join("data", "klines", f"{name}.csv"), index=False)
 
 
 def _add_gains(
