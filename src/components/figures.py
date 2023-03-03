@@ -64,7 +64,7 @@ box_args = {
 }
 
 
-def get_bar_figure(names: pd.Series, gains: pd.Series) -> dcc.Graph:
+def get_bar_figure(names: pd.Series, gains: pd.Series, timeframe: str) -> dcc.Graph:
     """ Return bar figure with top gainers of the last 24 hours. """
     figure = go.Figure(data=go.Bar(
         x=names,
@@ -77,7 +77,7 @@ def get_bar_figure(names: pd.Series, gains: pd.Series) -> dcc.Graph:
     args["height"] = 328
 
     figure.update_layout(
-        title_text="Top Gainers (1D)",
+        title_text=f"Top Gainers ({timeframe})",
         yaxis_tickformat = ".1%",
         **args,
     )

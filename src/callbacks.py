@@ -137,18 +137,23 @@ def register_callbacks(app: Dash):
     @app.callback(
         Output("bar_chart", "children"),
         Input("timestamp", "data"),
-        Input("radio_overview", "value"),
+        Input("radio_overview_filter", "value"),
+        Input("radio_overview_timeframe", "value"),
         prevent_initial_call=True,
     )
-    def update_overview_card(timestamp, filter):
-        """ Update the bar figure containing the top gainers whenever the data was updated or another filter was selected. """
+    def update_overview_card(timestamp, filter, timeframe):
+        """ 
+        Update the bar figure containing the top gainers whenever the data was updated 
+        or another filter or timeframe was selected. 
+        """
         df = pd.read_csv(os.path.join("data", "market_data.csv"))
         df = df.rename(columns={"name": "id"})
         df = filter_df(df, filter)
-        df = df.sort_values(by=["gain_1d"], ascending=False).iloc[:30]
 
-        return get_bar_figure(names=df["id"], gains=df["gain_1d"])
-
+        col = f"gain_{timeframe.lower()}"
+        df = df.sort_values(by=[col], ascending=False).iloc[:30]
+        return get_bar_figure(names=df["id"], gains=df[col], timeframe=timeframe)
+        
 
     @app.callback(
         Output("bitcoin_chart", "children"),
