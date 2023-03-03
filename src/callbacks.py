@@ -52,8 +52,9 @@ def register_callbacks(app: Dash):
     )
     def update_trend_table(timestamp, filter):
         """ Update the data table of the uptrend screener whenever the data was updated or another filter was selected. """
-        df = pd.read_csv(os.path.join("data", "market_data.csv"))
-        df = df.rename(columns={"name": "id"})
+        df = pd.read_csv(os.path.join("data", "market_data.csv"), index_col="name")
+        df = df.drop(["BTC"]) # only keep altcoins
+        df["id"] = df.index
         df = filter_df(df, filter)
         df = df[["id", "trend_strength", "gain_1d", "gain_1w", "gain_1m"]]
 
@@ -68,8 +69,9 @@ def register_callbacks(app: Dash):
     )
     def update_pump_table(timestamp, filter):
         """ Update the data table of the pump screener whenever the data was updated or another filter was selected. """
-        df = pd.read_csv(os.path.join("data", "market_data.csv"))
-        df = df.rename(columns={"name": "id"})
+        df = pd.read_csv(os.path.join("data", "market_data.csv"), index_col="name")
+        df = df.drop(["BTC"]) # only keep altcoins
+        df["id"] = df.index
         df = filter_df(df, filter)
         df = df.loc[df["pump_strength"] > 2]
         df = df[["id", "pump_strength", "gain_1d", "gain_1w", "gain_1m"]]   
