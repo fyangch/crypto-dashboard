@@ -17,6 +17,21 @@ figure_args = {
     "height": 300,
 }
 
+ema_args = {
+    "ema_12": {
+        "color": "rgb(201, 202, 217)",
+        "width": 1,
+    }, 
+    "ema_21": {
+        "color": "rgb(209, 210, 249)",
+        "width": 1.5,
+    }, 
+    "ema_50": {
+        "color": "rgb(163, 188, 249)",
+        "width": 2,
+    },
+}
+
 h_line_args = {
     "line_width": 1.5, 
     "line_dash": "dot", 
@@ -73,23 +88,26 @@ def get_bar_figure(names: pd.Series, gains: pd.Series) -> dcc.Graph:
 def get_candlestick_figure(title: str, klines: pd.DataFrame) -> dcc.Graph:
     """ Create and return a candlestick chart using the passed kline data. """
     datetime = pd.to_datetime(klines.index, unit="s")
-    
-    figure = go.Figure(data=go.Candlestick(
+
+    # define candlestick and EMA traces
+    candlestick = go.Candlestick(
         x=datetime,
         open=klines["open"], high=klines["high"], 
         low=klines["low"], close=klines["close"],
-    ))
+    )
+    emas = [
+        go.Scatter(x=datetime, y=klines[ema], mode="lines", line=ema_args[ema], opacity=0.67)
+        for ema in ["ema_12", "ema_21", "ema_50"] if ema in klines.columns
+    ]
+    
+    # create figure
+    figure = go.Figure(data=[*emas, candlestick])
     figure.update_layout(
         title_text=title,
         xaxis_rangeslider_visible=False,
         hovermode=False,
         **figure_args,
     )
-
-    # add EMAs
-    for col in ["ema_12", "ema_21", "ema_50"]:
-        if col in klines.columns:
-            figure.add_scatter(x=datetime, y=klines[col], mode="lines")
 
     # required values for the chart annotations
     lowest_low = klines["low"].min()
