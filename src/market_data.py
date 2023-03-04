@@ -5,6 +5,7 @@ import pandas as pd
 from typing import List, Dict
 
 from src.exchange_data import get_klines
+from src.utils import get_emas
 
 
 def update_market_data() -> None:
@@ -35,7 +36,7 @@ def update_market_data() -> None:
         os.makedirs(os.path.join("data", "klines"))
     df.to_csv(os.path.join("data", "market_data.csv"), index_label="name")
     for name in kline_dict:
-        kline_dict[name].to_csv(os.path.join("data", "klines", f"{name}.csv"))
+        kline_dict[name].to_csv(os.path.join("data", "klines", f"{name}.csv"), index=False)
 
 
 def _add_gains(
@@ -79,12 +80,8 @@ def _add_trend_strengths(
         if time.time() - klines["timestamp"].iloc[-1] < 3600:
             klines = klines.iloc[:-1]
 
-        # compute most EMAs
-        ema_12 = klines["close"].ewm(span=12).mean()
-        ema_21 = klines["close"].ewm(span=21).mean()
-        ema_50 = klines["close"].ewm(span=50).mean()
-
         # compute strength of uptrend using EMA values
+        ema_12, ema_21, ema_50 = get_emas(close=klines["close"], ema_lengths=[12, 21, 50])
         scores = np.array([
             ema_12.iloc[-1] / ema_21.iloc[-1],
             ema_21.iloc[-1] / ema_50.iloc[-1],

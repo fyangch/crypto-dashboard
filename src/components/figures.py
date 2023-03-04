@@ -12,8 +12,24 @@ figure_args = {
     "title_xref": "paper",
     "xaxis": {"tickformat": "%b %d", "fixedrange": True},
     "yaxis": {"fixedrange": True},
+    "showlegend": False,
     "margin": {"b": 0, "l": 0, "r": 0, "t": 30},
     "height": 300,
+}
+
+ema_args = {
+    "ema_12": {
+        "color": "rgb(201, 202, 217)",
+        "width": 1,
+    }, 
+    "ema_21": {
+        "color": "rgb(209, 210, 249)",
+        "width": 1.5,
+    }, 
+    "ema_50": {
+        "color": "rgb(163, 188, 249)",
+        "width": 2,
+    },
 }
 
 h_line_args = {
@@ -48,7 +64,7 @@ box_args = {
 }
 
 
-def get_bar_figure(names: pd.Series, gains: pd.Series) -> dcc.Graph:
+def get_bar_figure(names: pd.Index, gains: pd.Series, btc_gain: float, timeframe: str) -> dcc.Graph:
     """ Return bar figure with top gainers of the last 24 hours. """
     figure = go.Figure(data=go.Bar(
         x=names,
@@ -61,29 +77,42 @@ def get_bar_figure(names: pd.Series, gains: pd.Series) -> dcc.Graph:
     args["height"] = 328
 
     figure.update_layout(
-        title_text="Top Gainers (1D)",
+        title_text=f"Top Gainers ({timeframe})",
         yaxis_tickformat = ".1%",
         **args,
+    )
+
+    # mark Bitcoin gain
+    figure.add_hline(
+        y=btc_gain, 
+        line_width=1.5, 
+        line_dash="dot",
+        annotation_text="<i>BTC</i>",
+        annotation_font_size=12,
+        annotation_xshift=-3,
+        annotation_yshift=-1,
     )
 
     return dcc.Graph(figure=figure, config={"displayModeBar": False})
 
 
-def get_candlestick_figure(
-    title: str,
-    timestamp: pd.Series,
-    open: pd.Series,
-    high: pd.Series,
-    low: pd.Series,
-    close: pd.Series,
-    ) -> dcc.Graph:
+def get_candlestick_figure(title: str, klines: pd.DataFrame) -> dcc.Graph:
     """ Create and return a candlestick chart using the passed kline data. """
-    datetime = pd.to_datetime(timestamp, unit="s")
-    
-    figure = go.Figure(data=go.Candlestick(
+    datetime = pd.to_datetime(klines.index, unit="s")
+
+    # define candlestick and EMA traces
+    candlestick = go.Candlestick(
         x=datetime,
-        open=open, high=high, low=low, close=close,
-    ))
+        open=klines["open"], high=klines["high"], 
+        low=klines["low"], close=klines["close"],
+    )
+    emas = [
+        go.Scatter(x=datetime, y=klines[ema], mode="lines", line=ema_args[ema], opacity=0.67)
+        for ema in ["ema_12", "ema_21", "ema_50"] if ema in klines.columns
+    ]
+    
+    # create figure
+    figure = go.Figure(data=[*emas, candlestick])
     figure.update_layout(
         title_text=title,
         xaxis_rangeslider_visible=False,
@@ -92,9 +121,10 @@ def get_candlestick_figure(
     )
 
     # required values for the chart annotations
-    lowest_low = low.min()
-    current_close = close.iloc[-1]
-    index = low[low == lowest_low].index[0]
+    lowest_low = klines["low"].min()
+    current_close = klines["close"].iloc[-1]
+    timestamp_low = klines["low"][klines["low"] == lowest_low].index[0]
+    datetime_low = pd.to_datetime(timestamp_low, unit="s")
     gain = (current_close / lowest_low - 1.) * 100.
 
     # horizontal lines that mark the price levels of the lowest low
@@ -104,16 +134,16 @@ def get_candlestick_figure(
 
     # vertical arrow that visualizes the current gain
     figure.add_annotation(
-        x=datetime[index],
+        x=datetime_low,
         y=current_close,
-        ax=datetime[index],
+        ax=datetime_low,
         ay=lowest_low,
         **arrow_args,
     )
 
     # annotation box containing the gain value
     figure.add_annotation(
-        x=datetime[index],
+        x=datetime_low,
         y=0.5 * (current_close + lowest_low),
         text="{:.1f}".format(gain) + "%",
         **box_args,
