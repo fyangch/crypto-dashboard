@@ -148,13 +148,14 @@ def register_callbacks(app: Dash):
         Update the bar figure containing the top gainers whenever the data was updated 
         or another filter or timeframe was selected. 
         """
-        df = pd.read_csv(os.path.join("data", "market_data.csv"))
-        df = df.rename(columns={"name": "id"})
-        df = filter_df(df, filter)
-
+        df = pd.read_csv(os.path.join("data", "market_data.csv"), index_col="name")
         col = f"gain_{timeframe.lower()}"
+        btc_gain = df.loc["BTC", col]
+        df = df.drop(["BTC"]) # only keep altcoins
+        df = filter_df(df, filter)
         df = df.sort_values(by=[col], ascending=False).iloc[:30]
-        return get_bar_figure(names=df["id"], gains=df[col], timeframe=timeframe)
+
+        return get_bar_figure(names=df.index, gains=df[col], btc_gain=btc_gain, timeframe=timeframe)
         
 
     @app.callback(

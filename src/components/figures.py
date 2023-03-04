@@ -64,7 +64,7 @@ box_args = {
 }
 
 
-def get_bar_figure(names: pd.Series, gains: pd.Series, timeframe: str) -> dcc.Graph:
+def get_bar_figure(names: pd.Index, gains: pd.Series, btc_gain: float, timeframe: str) -> dcc.Graph:
     """ Return bar figure with top gainers of the last 24 hours. """
     figure = go.Figure(data=go.Bar(
         x=names,
@@ -80,6 +80,17 @@ def get_bar_figure(names: pd.Series, gains: pd.Series, timeframe: str) -> dcc.Gr
         title_text=f"Top Gainers ({timeframe})",
         yaxis_tickformat = ".1%",
         **args,
+    )
+
+    # mark Bitcoin gain
+    figure.add_hline(
+        y=btc_gain, 
+        line_width=1.5, 
+        line_dash="dot",
+        annotation_text="<i>BTC</i>",
+        annotation_font_size=12,
+        annotation_xshift=-3,
+        annotation_yshift=-1,
     )
 
     return dcc.Graph(figure=figure, config={"displayModeBar": False})
