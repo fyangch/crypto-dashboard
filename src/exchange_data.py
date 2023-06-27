@@ -15,6 +15,7 @@ API docs:
 """
 
 BINANCE_ENDPOINT = "https://api.binance.com/api/v3/klines"
+BINANCE_PERPS_ENDPOINT = "https://testnet.binancefuture.com/fapi/v1/klines"
 BYBIT_ENDPOINT = "https://api.bybit.com/v5/market/kline"
 HUOBI_ENDPOINT = "https://api.huobi.pro/market/history/kline"
 KUCOIN_ENDPOINT = "https://api.kucoin.com/api/v1/market/candles"
@@ -55,7 +56,17 @@ def get_klines(
         exchange = info_df.loc[names[i], "exchange"]
         try:
             if exchange == "binance":
-                kline_dict[names[i]] = _get_binance_klines(responses[i])
+                try:
+                    kline_dict[names[i]] = _get_binance_klines(responses[i])
+                except:
+                    # try perps endpoint in case there is no spot listing
+                    params = {
+                        "symbol": info_df.loc[names[i], "symbol"],
+                        "interval": INTERVALS[exchange][interval],
+                        "limit": num_klines,
+                    }
+                    response = requests.get(BINANCE_PERPS_ENDPOINT, params=params)
+                    kline_dict[names[i]] = _get_binance_klines(response)
             elif exchange == "bybit":
                 kline_dict[names[i]] = _get_bybit_klines(responses[i])
             elif exchange == "huobi":
