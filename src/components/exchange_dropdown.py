@@ -3,10 +3,10 @@ import dash_bootstrap_components as dbc
 
 
 # data frame column names
-col_names = ["binance_spot_usd", "binance_spot_btc", "binance_perps", "bybit_spot", "bybit_perps"]
+col_names = ["spot_usd", "spot_btc", "perps"]
 
 # labels of the buttons that open the corresponding exchange sites
-labels = ["Binance Spot (USD)", "Binance Spot (BTC)", "Binance Perpetuals", "Bybit Spot", "Bybit Perpetuals"]
+labels = ["Spot (USD)", "Spot (BTC)", "Perpetuals"]
 
 
 def get_exchange_dropdown(df: pd.DataFrame, name: str) -> dbc.DropdownMenu:
@@ -17,7 +17,7 @@ def get_exchange_dropdown(df: pd.DataFrame, name: str) -> dbc.DropdownMenu:
         label="Exchanges",
         children=[
             dbc.DropdownMenuItem(labels[i], target="_blank", href=urls[i])
-            for i in range(len(col_names)) if type(urls[i]) == str
+            for i in range(len(col_names)) if type(urls[i]) == str and len(urls[i]) > 0
         ],
         align_end=True,
         color="link",

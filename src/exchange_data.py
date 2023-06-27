@@ -56,7 +56,7 @@ def get_klines(
         try:
             if exchange == "binance":
                 kline_dict[names[i]] = _get_binance_klines(responses[i])
-            elif "bybit" in exchange:
+            elif exchange == "bybit":
                 kline_dict[names[i]] = _get_bybit_klines(responses[i])
             elif exchange == "huobi":
                 kline_dict[names[i]] = _get_huobi_klines(responses[i])
@@ -101,11 +101,11 @@ def _get_response(
             "limit": num_klines,
         }
         return requests.get(BINANCE_ENDPOINT, params=params)
-    elif "bybit" in exchange:
+    elif exchange == "bybit":
         params = {
-            "category": "spot" if "spot" in exchange else "linear",
+            "category": "linear",
             "symbol": info_df.loc[name, "symbol"],
-            "interval": INTERVALS["bybit"][interval],
+            "interval": INTERVALS[exchange][interval],
             "limit": num_klines,
         }
         return requests.get(BYBIT_ENDPOINT, params=params)

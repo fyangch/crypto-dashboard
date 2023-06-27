@@ -227,7 +227,7 @@ def register_callbacks(app: Dash):
     def update_bitcoin_links(timestamp):
         """ Update the TradingView and exchange links for Bitcoin whenever the data was updated. """
         df = pd.read_csv(os.path.join("data", "config.csv"), index_col="name")
-        tradingview_link = dbc.CardLink("TradingView", target="_blank", href=df.loc["BTC", "tradingview_usd"])
+        tradingview_link = dbc.CardLink("TradingView", target="_blank", href=df.loc["BTC", "chart_usd"])
         exchange_links = get_exchange_dropdown(df, "BTC")
 
         return tradingview_link, exchange_links
@@ -244,10 +244,10 @@ def register_callbacks(app: Dash):
         df = pd.read_csv(os.path.join("data", "config.csv"), index_col="name")
 
         tradingview_links = []
-        if type(df.loc[altcoin, "tradingview_usd"]) == str:
-            tradingview_links.append(dbc.CardLink("TradingView (USD)", target="_blank", href=df.loc[altcoin, "tradingview_usd"]))
-        if type(df.loc[altcoin, "tradingview_btc"]) == str:
-            tradingview_links.append(dbc.CardLink("TradingView (BTC)", target="_blank", href=df.loc[altcoin, "tradingview_btc"]))
+        if type(df.loc[altcoin, "chart_usd"]) == str:
+            tradingview_links.append(dbc.CardLink("TradingView (USD)", target="_blank", href=df.loc[altcoin, "chart_usd"]))
+        if type(df.loc[altcoin, "chart_btc"]) == str:
+            tradingview_links.append(dbc.CardLink("TradingView (BTC)", target="_blank", href=df.loc[altcoin, "chart_btc"]))
 
         exchange_links = get_exchange_dropdown(df, altcoin)
 
