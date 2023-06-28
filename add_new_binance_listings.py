@@ -4,7 +4,10 @@ import requests
 import pandas as pd
 
 
-NAMES_TO_IGNORE = {"ADADOWN", "ADAUP", "BNBDOWN", "BNBUP", "BTCDOWN", "BTCUP", "ETHDOWN", "ETHUP"}
+NAMES_TO_IGNORE = {
+    "ADADOWN", "ADAUP", "BNBDOWN", "BNBUP", "BTCDOWN", "BTCUP", "ETHDOWN", "ETHUP", # leveraged tokens
+    "1000LUNC", "1000PEPE", "1000SHIB", "1000XEC", # special names for perpetuals
+}
 
 
 def add_new_name(df: pd.DataFrame, name: str, symbol: str) -> pd.DataFrame:
@@ -16,15 +19,14 @@ def add_new_name(df: pd.DataFrame, name: str, symbol: str) -> pd.DataFrame:
     return df
 
 
-def check_spot_listings(df: pd.DataFrame) -> pd.DataFrame:
+def check_spot_listings(df: pd.DataFrame, quote: str) -> pd.DataFrame:
     """Check if there are any new spot listings."""
+    if quote not in ["USDT", "BTC"]:
+        raise ValueError(f"Invalid quote: {quote}")
+
     response = requests.get("https://api.binance.com/api/v3/exchangeInfo")
     for x in response.json()["symbols"]:
-        quote = x["quoteAsset"]
-        if quote not in ["USDT", "BTC"]:
-            continue
-
-        if x["status"] == "TRADING":
+        if x["quoteAsset"] == quote and x["status"] == "TRADING":
             name = x["baseAsset"]
             symbol = x["symbol"]
 
@@ -72,7 +74,8 @@ def check_perps_listings(df: pd.DataFrame) -> pd.DataFrame:
                 
 
 df = pd.read_csv(os.path.join("data", "config.csv"), index_col="name")
-df = check_spot_listings(df)
+df = check_spot_listings(df, "USDT")
+df = check_spot_listings(df, "BTC")
 df = check_perps_listings(df)
 df = df.sort_index()
 df.to_csv(os.path.join("data", "config.csv"), index_label="name")

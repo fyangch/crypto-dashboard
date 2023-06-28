@@ -8,7 +8,8 @@ from typing import List, Dict
 
 """
 API docs:
-    - https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data 
+    - https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+    - https://binance-docs.github.io/apidocs/futures/en/#mark-price-kline-candlestick-data
     - https://bybit-exchange.github.io/docs/v5/market/kline
     - https://open.huobigroup.com/?name=kline 
     - https://docs.kucoin.com/#get-klines 
@@ -114,7 +115,7 @@ def _get_response(
         return requests.get(BINANCE_ENDPOINT, params=params)
     elif exchange == "bybit":
         params = {
-            "category": "linear",
+            "category": "spot",
             "symbol": info_df.loc[name, "symbol"],
             "interval": INTERVALS[exchange][interval],
             "limit": num_klines,
