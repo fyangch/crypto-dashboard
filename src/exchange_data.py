@@ -15,7 +15,7 @@ API docs:
 """
 
 BINANCE_ENDPOINT = "https://api.binance.com/api/v3/klines"
-BINANCE_PERPS_ENDPOINT = "https://testnet.binancefuture.com/fapi/v1/klines"
+BINANCE_PERPS_ENDPOINT = "https://testnet.binancefuture.com/fapi/v1/markPriceKlines"
 BYBIT_ENDPOINT = "https://api.bybit.com/v5/market/kline"
 HUOBI_ENDPOINT = "https://api.huobi.pro/market/history/kline"
 KUCOIN_ENDPOINT = "https://api.kucoin.com/api/v1/market/candles"
