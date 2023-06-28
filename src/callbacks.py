@@ -10,7 +10,6 @@ from dash.exceptions import PreventUpdate
 from src.market_data import update_market_data
 from src.components.table_cards import get_row_highlight_condition
 from src.components.figures import get_candlestick_figure, get_bar_figure
-from src.components.exchange_dropdown import get_exchange_dropdown
 from src.utils import filter_df, add_emas
 
 
@@ -228,7 +227,12 @@ def register_callbacks(app: Dash):
         """ Update the TradingView and exchange links for Bitcoin whenever the data was updated. """
         df = pd.read_csv(os.path.join("data", "config.csv"), index_col="name")
         tradingview_link = dbc.CardLink("TradingView", target="_blank", href=df.loc["BTC", "chart_usd"])
-        exchange_links = get_exchange_dropdown(df, "BTC")
+        
+        exchange_links = []
+        if type(df.loc["BTC", "spot_usd"]) == str:
+            exchange_links.append(dbc.CardLink("Spot (USD)", target="_blank", href=df.loc["BTC", "spot_usd"]))
+        if type(df.loc["BTC", "perps"]) == str:
+            exchange_links.append(dbc.CardLink("Perpetuals", target="_blank", href=df.loc["BTC", "perps"]))
 
         return tradingview_link, exchange_links
 
@@ -249,6 +253,12 @@ def register_callbacks(app: Dash):
         if type(df.loc[altcoin, "chart_btc"]) == str:
             tradingview_links.append(dbc.CardLink("TradingView (BTC)", target="_blank", href=df.loc[altcoin, "chart_btc"]))
 
-        exchange_links = get_exchange_dropdown(df, altcoin)
+        exchange_links = []
+        if type(df.loc[altcoin, "spot_usd"]) == str:
+            exchange_links.append(dbc.CardLink("Spot (USD)", target="_blank", href=df.loc[altcoin, "spot_usd"]))
+        if type(df.loc[altcoin, "spot_btc"]) == str:
+            exchange_links.append(dbc.CardLink("Spot (BTC)", target="_blank", href=df.loc[altcoin, "spot_btc"]))
+        if type(df.loc[altcoin, "perps"]) == str:
+            exchange_links.append(dbc.CardLink("Perpetuals", target="_blank", href=df.loc[altcoin, "perps"]))
 
         return tradingview_links, exchange_links
