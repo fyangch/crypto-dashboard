@@ -41,8 +41,16 @@ You can also manually add coins and tokens from Bybit, Huobi and KuCoin. However
 | Column | Value to enter |
 | ------ | --------------- |
 | name |  Name to be displayed for the new coin or token. |
-| symbol | This value needs to comply with the the corresponding exchange API! |
+| symbol | This value needs to comply with the exchange API! See below. |
 | tier | 1, 2, 3 or 4. |
 | watchlist | 0 or 1. |
 | exchange | bybit, huobi or kucoin. |
 | other | The remaining columns can be used to add optional TradingView or exchange links. |
+
+Note that each exchange API uses a different format for the symbol names:
+
+| Exchange | Symbol format |
+| ------ | --------------- |
+| bybit |  BTCUSDT |
+| huobi | btcusdt |
+| kucoin | BTC-USDT |
