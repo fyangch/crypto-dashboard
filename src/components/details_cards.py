@@ -15,8 +15,8 @@ bitcoin_card = dbc.Card(
         html.Br(),
         dbc.Row(
             [
-                dbc.Col(id="bitcoin_tradingview", align="center"),
-                dbc.Col(id="bitcoin_exchanges"),
+                dbc.Col(id="bitcoin_tradingview"),
+                dbc.Col(id="bitcoin_exchanges", style={"textAlign": "right"}),
             ], 
             style={"marginBottom": "-0.5em"},
         ),
@@ -39,8 +39,8 @@ altcoin_card = dbc.Card(
         html.Br(),
         dbc.Row(
             [
-                dbc.Col(id="altcoin_tradingview", align="center"),
-                dbc.Col(id="altcoin_exchanges"),
+                dbc.Col(id="altcoin_tradingview"),
+                dbc.Col(id="altcoin_exchanges", style={"textAlign": "right"}),
             ],
             style={"marginBottom": "-0.5em"},
         ),

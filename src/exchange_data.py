@@ -8,13 +8,15 @@ from typing import List, Dict
 
 """
 API docs:
-    - https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data 
+    - https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+    - https://binance-docs.github.io/apidocs/futures/en/#mark-price-kline-candlestick-data
     - https://bybit-exchange.github.io/docs/v5/market/kline
     - https://open.huobigroup.com/?name=kline 
     - https://docs.kucoin.com/#get-klines 
 """
 
 BINANCE_ENDPOINT = "https://api.binance.com/api/v3/klines"
+BINANCE_PERPS_ENDPOINT = "https://testnet.binancefuture.com/fapi/v1/markPriceKlines"
 BYBIT_ENDPOINT = "https://api.bybit.com/v5/market/kline"
 HUOBI_ENDPOINT = "https://api.huobi.pro/market/history/kline"
 KUCOIN_ENDPOINT = "https://api.kucoin.com/api/v1/market/candles"
@@ -55,8 +57,18 @@ def get_klines(
         exchange = info_df.loc[names[i], "exchange"]
         try:
             if exchange == "binance":
-                kline_dict[names[i]] = _get_binance_klines(responses[i])
-            elif "bybit" in exchange:
+                try:
+                    kline_dict[names[i]] = _get_binance_klines(responses[i])
+                except:
+                    # try perps endpoint in case there is no spot listing
+                    params = {
+                        "symbol": info_df.loc[names[i], "symbol"],
+                        "interval": INTERVALS[exchange][interval],
+                        "limit": num_klines,
+                    }
+                    response = requests.get(BINANCE_PERPS_ENDPOINT, params=params)
+                    kline_dict[names[i]] = _get_binance_klines(response)
+            elif exchange == "bybit":
                 kline_dict[names[i]] = _get_bybit_klines(responses[i])
             elif exchange == "huobi":
                 kline_dict[names[i]] = _get_huobi_klines(responses[i])
@@ -101,11 +113,11 @@ def _get_response(
             "limit": num_klines,
         }
         return requests.get(BINANCE_ENDPOINT, params=params)
-    elif "bybit" in exchange:
+    elif exchange == "bybit":
         params = {
-            "category": "spot" if "spot" in exchange else "linear",
+            "category": "spot",
             "symbol": info_df.loc[name, "symbol"],
-            "interval": INTERVALS["bybit"][interval],
+            "interval": INTERVALS[exchange][interval],
             "limit": num_klines,
         }
         return requests.get(BYBIT_ENDPOINT, params=params)
