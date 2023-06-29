@@ -11,6 +11,7 @@ API docs:
     - https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
     - https://binance-docs.github.io/apidocs/futures/en/#mark-price-kline-candlestick-data
     - https://bybit-exchange.github.io/docs/v5/market/kline
+    - https://www.gate.io/docs/developers/apiv4/en/#market-candlesticks
     - https://open.huobigroup.com/?name=kline 
     - https://docs.kucoin.com/#get-klines 
 """
@@ -18,12 +19,14 @@ API docs:
 BINANCE_ENDPOINT = "https://api.binance.com/api/v3/klines"
 BINANCE_PERPS_ENDPOINT = "https://testnet.binancefuture.com/fapi/v1/markPriceKlines"
 BYBIT_ENDPOINT = "https://api.bybit.com/v5/market/kline"
+GATIO_ENDPOINT = "https://api.gateio.ws/api/v4/spot/candlesticks"
 HUOBI_ENDPOINT = "https://api.huobi.pro/market/history/kline"
 KUCOIN_ENDPOINT = "https://api.kucoin.com/api/v1/market/candles"
 
 INTERVALS = {
     "binance": {5: "5m", 15: "15m", 60: "1h", 240: "4h", 1440: "1d"},
     "bybit": {5: "5", 15: "15", 60: "60", 240: "240", 1440: "D"},
+    "gateio": {5: "5m", 15: "15m", 60: "1h", 240: "4h", 1440: "1d"},
     "huobi": {5: "5min", 15: "15min", 60: "60min", 240: "4hour", 1440: "1day"},
     "kucoin": {5: "5min", 15: "15min", 60: "1hour", 240: "4hour", 1440: "1day"},
 }
@@ -70,6 +73,8 @@ def get_klines(
                     kline_dict[names[i]] = _get_binance_klines(response)
             elif exchange == "bybit":
                 kline_dict[names[i]] = _get_bybit_klines(responses[i])
+            elif exchange == "gateio":
+                kline_dict[names[i]] = _get_gateio_klines(responses[i])
             elif exchange == "huobi":
                 kline_dict[names[i]] = _get_huobi_klines(responses[i])
             elif exchange == "kucoin":
@@ -121,6 +126,13 @@ def _get_response(
             "limit": num_klines,
         }
         return requests.get(BYBIT_ENDPOINT, params=params)
+    elif exchange == "gateio":
+        params = {
+            "currency_pair": info_df.loc[name, "symbol"],
+            "interval": INTERVALS[exchange][interval],
+            "limit": num_klines,
+        }
+        return requests.get(GATIO_ENDPOINT, params=params)
     elif exchange == "huobi":
         params = {
             "symbol": info_df.loc[name, "symbol"].lower(),
@@ -171,6 +183,23 @@ def _get_bybit_klines(response: Response) -> pd.DataFrame:
         "high": [float(data[i][2]) for i in reversed(range(n))],
         "low": [float(data[i][3]) for i in reversed(range(n))],
         "close": [float(data[i][4]) for i in reversed(range(n))],
+    })
+
+
+def _get_gateio_klines(response: Response) -> pd.DataFrame:
+    """ 
+    Return data frame with kline data given a response from the Gate.io API.
+    Format of the kline data is consistent across all exchanges.
+    """
+    data = response.json()
+    n = len(data)
+
+    return pd.DataFrame(data={
+        "timestamp": [int(data[i][0]) for i in range(n)],
+        "open": [float(data[i][5]) for i in range(n)],
+        "high": [float(data[i][3]) for i in range(n)],
+        "low": [float(data[i][4]) for i in range(n)],
+        "close": [float(data[i][2]) for i in range(n)],
     })
 
 

@@ -7,7 +7,7 @@ This dashboard can be used as a tool to find strong coins and tokens that are ou
 
 
 ## Details
-This cryptocurrency dashboard was created using [Dash & Plotly](https://plotly.com/) and it is mainly intended to monitor coins and tokens that are listed on Binance. However, cryptocurrencies from other exchanges can be easily added. The dashboard currently supports kline (candlestick) data retrieval from Binance, Bybit, Huobi and KuCoin.
+This cryptocurrency dashboard was created using [Dash & Plotly](https://plotly.com/) and it is mainly intended to monitor coins and tokens that are listed on Binance. However, cryptocurrencies from other exchanges can be easily added. The dashboard currently supports kline (candlestick) data retrieval from Binance, Bybit, Gate.io, Huobi and KuCoin.
 
 ### Dashboard Metrics
 - 4 hour klines are used for the charts and the computation of all metrics.
@@ -36,7 +36,7 @@ To add cryptocurrencies to your watchlist, simply set the corresponding value in
 You can also divide the coins and tokens into different tiers from 1-4. For that, simply set the values in the `tier` column to 1, 2, 3 or 4.
 
 ### Other exchanges
-You can also manually add coins and tokens from Bybit, Huobi and KuCoin. However, only spot listings are supported at the moment. Simply add a new row to the `data/config.csv` file and add the following values for each column:
+You can also manually add coins and tokens from Bybit, Gate.io, Huobi and KuCoin. However, only spot listings are supported at the moment. Simply add a new row to the `data/config.csv` file and add the following values for each column:
 
 | Column | Value to enter |
 | ------ | --------------- |
@@ -44,7 +44,7 @@ You can also manually add coins and tokens from Bybit, Huobi and KuCoin. However
 | symbol | This value needs to comply with the exchange API! See below. |
 | tier | 1, 2, 3 or 4. |
 | watchlist | 0 or 1. |
-| exchange | bybit, huobi or kucoin. |
+| exchange | bybit, gateio, huobi or kucoin. |
 | other | The remaining columns can be used to add optional TradingView or exchange links. |
 
 Note that each exchange API uses a different format for the symbol names:
@@ -52,5 +52,6 @@ Note that each exchange API uses a different format for the symbol names:
 | Exchange | Symbol format |
 | ------ | --------------- |
 | bybit |  BTCUSDT |
+| gateio | BTC_USDT |
 | huobi | btcusdt |
 | kucoin | BTC-USDT |
